@@ -1,0 +1,1 @@
+9a4e6d50f110fbb44c5da88aa5a1469283737c47b58c2bf888f272fabc062f91  seedsigner_os.v0.1.0.pi0.img
