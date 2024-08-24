@@ -1,0 +1,10 @@
+.DS_Store
+__pycache__/
+src/seedsigner.egg-info/
+.nova
+.vscode
+src/seedsigner/models/settings_definition.json
+.idea
+*.mo
+.coverage
+seedsigner-screenshots
