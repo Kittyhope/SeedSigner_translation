@@ -19,27 +19,26 @@ from seedsigner.models.encode_qr import GenericStaticQrEncoder
 from seedsigner.models.seed import Seed
 from seedsigner.models.settings_definition import SettingsConstants
 from seedsigner.views.seed_views import SeedDiscardView, SeedFinalizeView, SeedMnemonicEntryView, SeedOptionsView, SeedWordsWarningView, SeedExportXpubScriptTypeView
-
+from seedsigner.views.language_views import translator
 from .view import View, Destination, BackStackView
 
 logger = logging.getLogger(__name__)
 
-
 class ToolsMenuView(View):
-    IMAGE = (" New seed", FontAwesomeIconConstants.CAMERA)
-    DICE = ("New seed", FontAwesomeIconConstants.DICE)
-    KEYBOARD = ("Calc 12th/24th word", FontAwesomeIconConstants.KEYBOARD)
-    ADDRESS_EXPLORER = "Address Explorer"
-    VERIFY_ADDRESS = "Verify address"
+    IMAGE = (translator(" New seed"), FontAwesomeIconConstants.CAMERA)
+    DICE = (translator("New seed"), FontAwesomeIconConstants.DICE)
+    KEYBOARD = (translator("Calc 12th/24th word"), FontAwesomeIconConstants.KEYBOARD)
+    ADDRESS_EXPLORER = translator("Address Explorer")
+    VERIFY_ADDRESS = translator("Verify address")
 
     def run(self):
         button_data = [self.IMAGE, self.DICE, self.KEYBOARD, self.ADDRESS_EXPLORER, self.VERIFY_ADDRESS]
 
         selected_menu_num = self.run_screen(
             ButtonListScreen,
-            title="Tools",
+            title=translator("Tools"),
             is_button_text_centered=False,
-            button_data=button_data
+            button_data=button_data,
         )
 
         if selected_menu_num == RET_CODE__BACK_BUTTON:
@@ -117,12 +116,12 @@ class ToolsImageEntropyFinalImageView(View):
 
 class ToolsImageEntropyMnemonicLengthView(View):
     def run(self):
-        TWELVE_WORDS = "12 words"
-        TWENTYFOUR_WORDS = "24 words"
+        TWELVE_WORDS = translator("12 words")
+        TWENTYFOUR_WORDS = translator("24 words")
         button_data = [TWELVE_WORDS, TWENTYFOUR_WORDS]
 
         selected_menu_num = ButtonListScreen(
-            title="Mnemonic Length?",
+            title=translator("Mnemonic Length?"),
             button_data=button_data,
         ).display()
 
@@ -189,12 +188,15 @@ class ToolsImageEntropyMnemonicLengthView(View):
 ****************************************************************************"""
 class ToolsDiceEntropyMnemonicLengthView(View):
     def run(self):
-        TWELVE = f"12 words ({mnemonic_generation.DICE__NUM_ROLLS__12WORD} rolls)"
-        TWENTY_FOUR = f"24 words ({mnemonic_generation.DICE__NUM_ROLLS__24WORD} rolls)"
+        translated_TWELVE = translator("12 words")
+        translated_rolls = translator("rolls")
+        translated_TWENTY_FOUR = translator("24 words")
+        TWELVE = f"{translated_TWELVE} ({mnemonic_generation.DICE__NUM_ROLLS__12WORD} {translated_rolls})"
+        TWENTY_FOUR = f"{translated_TWENTY_FOUR} ({mnemonic_generation.DICE__NUM_ROLLS__24WORD} {translated_rolls})"
         
         button_data = [TWELVE, TWENTY_FOUR]
         selected_menu_num = ButtonListScreen(
-            title="Mnemonic Length",
+            title=translator("Mnemonic Length"),
             is_bottom_list=True,
             is_button_text_centered=True,
             button_data=button_data,
@@ -240,15 +242,15 @@ class ToolsDiceEntropyEntryView(View):
     Calc final word Views
 ****************************************************************************"""
 class ToolsCalcFinalWordNumWordsView(View):
-    TWELVE = "12 words"
-    TWENTY_FOUR = "24 words"
+    TWELVE = translator("12 words")
+    TWENTY_FOUR = translator("24 words")
 
     def run(self):
         button_data = [self.TWELVE, self.TWENTY_FOUR]
 
         selected_menu_num = self.run_screen(
             ButtonListScreen,
-            title="Mnemonic Length",
+            title=translator("Mnemonic Length"),
             is_bottom_list=True,
             is_button_text_centered=True,
             button_data=button_data,
@@ -280,9 +282,9 @@ class ToolsCalcFinalWordFinalizePromptView(View):
         else:
             num_entropy_bits = 3
 
-        COIN_FLIPS = "Coin flip entropy"
-        SELECT_WORD = f"Word selection entropy"
-        ZEROS = "Finalize with zeros"
+        COIN_FLIPS = translator("Coin flip entropy")
+        SELECT_WORD = translator("Word selection entropy")
+        ZEROS = translator("Finalize with zeros")
 
         button_data = [COIN_FLIPS, SELECT_WORD, ZEROS]
         selected_menu_num = ToolsCalcFinalWordFinalizePromptScreen(
@@ -385,11 +387,11 @@ class ToolsCalcFinalWordShowFinalWordView(View):
 
 
     def run(self):
-        NEXT = "Next"
+        NEXT = translator("Next")
         button_data = [NEXT]
         selected_menu_num = self.run_screen(
             ToolsCalcFinalWordScreen,
-            title="Final Word Calc",
+            title=translator("Final Word Calc"),
             button_data=button_data,
             selected_final_word=self.selected_final_word,
             selected_final_bits=self.selected_final_bits,
@@ -411,8 +413,8 @@ class ToolsCalcFinalWordDoneView(View):
         mnemonic_word_length = len(mnemonic)
         final_word = mnemonic[-1]
 
-        LOAD = "Load seed"
-        DISCARD = ("Discard", None, None, "red")
+        LOAD = translator("Load seed")
+        DISCARD = (translator("Discard"), None, None, translator("red"))
         button_data = [LOAD, DISCARD]
 
         selected_menu_num = ToolsCalcFinalWordDoneScreen(
@@ -438,12 +440,11 @@ class ToolsCalcFinalWordDoneView(View):
     Address Explorer Views
 ****************************************************************************"""
 class ToolsAddressExplorerSelectSourceView(View):
-    SCAN_SEED = ("Scan a seed", SeedSignerIconConstants.QRCODE)
-    SCAN_DESCRIPTOR = ("Scan wallet descriptor", SeedSignerIconConstants.QRCODE)
-    TYPE_12WORD = ("Enter 12-word seed", FontAwesomeIconConstants.KEYBOARD)
-    TYPE_24WORD = ("Enter 24-word seed", FontAwesomeIconConstants.KEYBOARD)
-    TYPE_ELECTRUM = ("Enter Electrum seed", FontAwesomeIconConstants.KEYBOARD)
-
+    SCAN_SEED = (translator("Scan a seed"), SeedSignerIconConstants.QRCODE)
+    SCAN_DESCRIPTOR = (translator("Scan wallet descriptor"), SeedSignerIconConstants.QRCODE)
+    TYPE_12WORD = (translator("Enter 12-word seed"), FontAwesomeIconConstants.KEYBOARD)
+    TYPE_24WORD = (translator("Enter 24-word seed"), FontAwesomeIconConstants.KEYBOARD)
+    TYPE_ELECTRUM = (translator("Enter Electrum seed"), FontAwesomeIconConstants.KEYBOARD)
 
     def run(self):
         seeds = self.controller.storage.seeds
@@ -454,10 +455,10 @@ class ToolsAddressExplorerSelectSourceView(View):
         button_data = button_data + [self.SCAN_SEED, self.SCAN_DESCRIPTOR, self.TYPE_12WORD, self.TYPE_24WORD]
         if self.settings.get_value(SettingsConstants.SETTING__ELECTRUM_SEEDS) == SettingsConstants.OPTION__ENABLED:
             button_data.append(self.TYPE_ELECTRUM)
-        
+                
         selected_menu_num = self.run_screen(
             ButtonListScreen,
-            title="Address Explorer",
+            title=translator("Address Explorer"),
             button_data=button_data,
             is_button_text_centered=False,
             is_bottom_list=True,
@@ -504,8 +505,8 @@ class ToolsAddressExplorerSelectSourceView(View):
 
 
 class ToolsAddressExplorerAddressTypeView(View):
-    RECEIVE = "Receive Addresses"
-    CHANGE = "Change Addresses"
+    RECEIVE = translator("Receive Addresses")
+    CHANGE = translator("Change Addresses")
 
 
     def __init__(self, seed_num: int = None, script_type: str = None, custom_derivation: str = None):
@@ -539,7 +540,7 @@ class ToolsAddressExplorerAddressTypeView(View):
             if self.script_type == SettingsConstants.CUSTOM_DERIVATION:
                 derivation_path = self.custom_derivation
             elif seed_derivation_override:
-                derivation_path = seed_derivation_override
+                derivation_path = seed_derivation_override                
             else:
                 derivation_path = embit_utils.get_standard_derivation_path(
                     network=self.settings.get_value(SettingsConstants.SETTING__NETWORK),
@@ -620,7 +621,7 @@ class ToolsAddressExplorerAddressListView(View):
         else:
             try:
                 from seedsigner.gui.screens.screen import LoadingScreenThread
-                self.loading_screen = LoadingScreenThread(text="Calculating addrs...")
+                self.loading_screen = LoadingScreenThread(text=translator("Calculating addrs..."))
                 self.loading_screen.start()
 
                 if addr_storage_key not in data:
@@ -636,7 +637,7 @@ class ToolsAddressExplorerAddressListView(View):
                             data[addr_storage_key].append(address)
                     else:
                         # TODO: Custom derivation path
-                        raise Exception("Custom Derivation address explorer not yet implemented")
+                        raise Exception(translator("Custom Derivation address explorer not yet implemented"))
                 
                 elif "wallet_descriptor" in data:
                     descriptor: Descriptor = data["wallet_descriptor"]
@@ -647,7 +648,7 @@ class ToolsAddressExplorerAddressListView(View):
                             data[addr_storage_key].append(address)
 
                     else:
-                        raise Exception("Single sig descriptors not yet supported")
+                        raise Exception(translator("Single sig descriptors not yet supported"))
             finally:
                 # Everything is set. Stop the loading screen
                 self.loading_screen.stop()
@@ -665,14 +666,14 @@ class ToolsAddressExplorerAddressListView(View):
                 end_digits = -4
             button_data.append(f"{cur_index}:{address[:8]}...{address[end_digits:]}")
 
-        button_data.append(("Next {}".format(addrs_per_screen), None, None, None, SeedSignerIconConstants.CHEVRON_RIGHT))
+        button_data.append((translator("Next {}").format(addrs_per_screen), None, None, None, SeedSignerIconConstants.CHEVRON_RIGHT))
 
         selected_menu_num = self.run_screen(
             ButtonListScreen,
-            title="{} Addrs".format("Receive" if not self.is_change else "Change"),
+            title=translator("{} Addrs").format("Receive" if not self.is_change else "Change"),
             button_data=button_data,
             button_font_name=GUIConstants.FIXED_WIDTH_EMPHASIS_FONT_NAME,
-            button_font_size=GUIConstants.BUTTON_FONT_SIZE + 4,
+            button_font_size=GUIConstants.BUTTON_FONT_SIZE + 2,
             is_button_text_centered=False,
             is_bottom_list=True,
             selected_button=self.selected_button_index,

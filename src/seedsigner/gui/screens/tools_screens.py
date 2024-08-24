@@ -9,14 +9,14 @@ from seedsigner.gui.components import FontAwesomeIconConstants, Fonts, GUIConsta
 from seedsigner.gui.screens.screen import RET_CODE__BACK_BUTTON, BaseScreen, ButtonListScreen, KeyboardScreen
 from seedsigner.hardware.buttons import HardwareButtonsConstants
 from seedsigner.models.settings_definition import SettingsConstants, SettingsDefinition
-
+from seedsigner.views.language_views import translator
 
 
 @dataclass
 class ToolsImageEntropyLivePreviewScreen(BaseScreen):
     def __post_init__(self):
         # Customize defaults
-        self.title = "Initializing Camera..."
+        self.title = translator("Initializing Camera...")
 
         # Initialize the base class
         super().__post_init__()
@@ -60,7 +60,7 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
                         int(self.renderer.canvas_width/2),
                         self.renderer.canvas_height - GUIConstants.EDGE_PADDING
                     ),
-                    text="Capturing image...",
+                    text=translator("Capturing image..."),
                     fill=GUIConstants.ACCENT_COLOR,
                     font=instructions_font,
                     stroke_width=4,
@@ -79,7 +79,7 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
                     int(self.renderer.canvas_width/2),
                     self.renderer.canvas_height - GUIConstants.EDGE_PADDING
                 ),
-                text="< back  |  click joystick",
+                text=translator("< back  |  click joystick"),
                 fill=GUIConstants.BODY_FONT_COLOR,
                 font=instructions_font,
                 stroke_width=4,
@@ -109,7 +109,7 @@ class ToolsImageEntropyFinalImageScreen(BaseScreen):
                 int(self.renderer.canvas_width/2),
                 self.renderer.canvas_height - GUIConstants.EDGE_PADDING
             ),
-            text=" < reshoot  |  accept > ",
+            text=translator(" < reshoot  |  accept > "),
             fill=GUIConstants.BODY_FONT_COLOR,
             font=instructions_font,
             stroke_width=4,
@@ -128,7 +128,7 @@ class ToolsImageEntropyFinalImageScreen(BaseScreen):
 class ToolsDiceEntropyEntryScreen(KeyboardScreen):
     def __post_init__(self):
         # Override values set by the parent class
-        self.title = f"Dice Roll 1/{self.return_after_n_chars}"
+        self.title = translator("Dice Roll 1/{return_after_n_chars_}",return_after_n_chars_=self.return_after_n_chars)
 
         # Specify the keys in the keyboard
         self.rows = 3
@@ -159,7 +159,7 @@ class ToolsDiceEntropyEntryScreen(KeyboardScreen):
     
 
     def update_title(self) -> bool:
-        self.title = f"Dice Roll {self.cursor_position + 1}/{self.return_after_n_chars}"
+        self.title = translator("Dice Roll {cursor_position_}/{return_after_n_chars_}",return_after_n_chars_=self.return_after_n_chars,cursor_position_=self.cursor_position + 1)
         return True
 
 
@@ -170,14 +170,15 @@ class ToolsCalcFinalWordFinalizePromptScreen(ButtonListScreen):
     num_entropy_bits: int = None
 
     def __post_init__(self):
-        self.title = "Build Final Word"
+        self.title = translator("Build Final Word")
         self.is_bottom_list = True
         self.is_button_text_centered = True
         super().__post_init__()
 
         self.components.append(TextArea(
-            text=f"The {self.mnemonic_length}th word is built from {self.num_entropy_bits} more entropy bits plus auto-calculated checksum.",
+            text=translator("The {mnemonic_length_}th word is built from {num_entropy_bits_} more entropy bits plus auto-calculated checksum.",mnemonic_length_=self.mnemonic_length,num_entropy_bits_=self.num_entropy_bits),
             screen_y=self.top_nav.height + int(GUIConstants.COMPONENT_PADDING/2),
+            font_name=GUIConstants.REGULAR_FONT_NAME
         ))
 
 
@@ -186,7 +187,7 @@ class ToolsCalcFinalWordFinalizePromptScreen(ButtonListScreen):
 class ToolsCoinFlipEntryScreen(KeyboardScreen):
     def __post_init__(self):
         # Override values set by the parent class
-        self.title = f"Coin Flip 1/{self.return_after_n_chars}"
+        self.title = translator("Coin Flip 1/{return_after_n_chars_}",return_after_n_chars_=self.return_after_n_chars)
 
         # Specify the keys in the keyboard
         self.rows = 1
@@ -198,17 +199,19 @@ class ToolsCoinFlipEntryScreen(KeyboardScreen):
         super().__post_init__()
     
         self.components.append(TextArea(
-            text="Heads = 1",
+            text=translator("Heads = 1"),
             screen_y = self.keyboard.rect[3] + 4*GUIConstants.COMPONENT_PADDING,
+            font_name=GUIConstants.REGULAR_FONT_NAME
         ))
         self.components.append(TextArea(
-            text="Tails = 0",
+            text=translator("Tails = 0"),
             screen_y = self.components[-1].screen_y + self.components[-1].height + GUIConstants.COMPONENT_PADDING,
+            font_name=GUIConstants.REGULAR_FONT_NAME
         ))
 
 
     def update_title(self) -> bool:
-        self.title = f"Coin Flip {self.cursor_position + 1}/{self.return_after_n_chars}"
+        self.title = translator("Coin Flip {cursor_position_}/{return_after_n_chars_}",cursor_position_=self.cursor_position + 1,return_after_n_chars_=self.return_after_n_chars)
         return True
 
 
@@ -250,9 +253,10 @@ class ToolsCalcFinalWordScreen(ButtonListScreen):
             discard_selected_bits = "_" * (len(self.checksum_bits))
 
         self.components.append(TextArea(
-            text=f"""Your input: \"{selection_text}\"""",
+            text=translator("Your input: \"{selection_text_}\"",selection_text_=selection_text),
             screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING - 2,  # Nudge to last line doesn't get too close to "Next" button
             height_ignores_below_baseline=True,  # Keep the next line (bits display) snugged up, regardless of text rendering below the baseline
+            font_name=GUIConstants.REGULAR_FONT_NAME
         ))
 
         # ...and that entropy's associated 11 bits
@@ -285,9 +289,10 @@ class ToolsCalcFinalWordScreen(ButtonListScreen):
 
         # Show the checksum..
         self.components.append(TextArea(
-            text="Checksum",
+            text=translator("Checksum"),
             edge_padding=0,
             screen_y=first_bits_line.screen_y + first_bits_line.height + 2*GUIConstants.COMPONENT_PADDING,
+            font_name=GUIConstants.REGULAR_FONT_NAME
         ))
 
         # ...and its actual bits. Prepend spacers to keep vertical alignment
@@ -321,9 +326,10 @@ class ToolsCalcFinalWordScreen(ButtonListScreen):
 
         # And now the *actual* final word after merging the bit data
         self.components.append(TextArea(
-            text=f"""Final Word: \"{self.actual_final_word}\"""",
+            text=translator("Final Word: \"{actual_final_word_}\"",actual_final_word_=self.actual_final_word),
             screen_y=self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING,
             height_ignores_below_baseline=True,  # Keep the next line (bits display) snugged up, regardless of text rendering below the baseline
+            font_name=GUIConstants.REGULAR_FONT_NAME
         ))
 
         # Once again show the bits that came from the user's entropy...
@@ -362,13 +368,13 @@ class ToolsCalcFinalWordDoneScreen(ButtonListScreen):
 
     def __post_init__(self):
         # Customize defaults
-        self.title = f"{self.mnemonic_word_length}th Word"
+        self.title = translator("{mnemonic_word_length_}th Word",mnemonic_word_length_=self.mnemonic_word_length)
         self.is_bottom_list = True
 
         super().__post_init__()
 
         self.components.append(TextArea(
-            text=f"""\"{self.final_word}\"""",
+            text=translator(f"""\"{self.final_word}\""""),
             font_size=GUIConstants.TOP_NAV_TITLE_FONT_SIZE + 6,
             is_text_centered=True,
             screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
@@ -377,7 +383,7 @@ class ToolsCalcFinalWordDoneScreen(ButtonListScreen):
         self.components.append(IconTextLine(
             icon_name=SeedSignerIconConstants.FINGERPRINT,
             icon_color=GUIConstants.INFO_COLOR,
-            label_text="fingerprint",
+            label_text=translator("fingerprint"),
             value_text=self.fingerprint,
             is_text_centered=True,
             screen_y=self.components[-1].screen_y + self.components[-1].height + 3*GUIConstants.COMPONENT_PADDING,
@@ -393,7 +399,7 @@ class ToolsAddressExplorerAddressTypeScreen(ButtonListScreen):
     custom_derivation_path: str = None
 
     def __post_init__(self):
-        self.title = "Address Explorer"
+        self.title = translator("Address Explorer")
         self.is_bottom_list = True
         super().__post_init__()
 
@@ -401,7 +407,7 @@ class ToolsAddressExplorerAddressTypeScreen(ButtonListScreen):
             self.components.append(IconTextLine(
                 icon_name=SeedSignerIconConstants.FINGERPRINT,
                 icon_color=GUIConstants.INFO_COLOR,
-                label_text="Fingerprint",
+                label_text=translator("Fingerprint"),
                 value_text=self.fingerprint,
                 screen_x=GUIConstants.EDGE_PADDING,
                 screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING,
@@ -410,23 +416,25 @@ class ToolsAddressExplorerAddressTypeScreen(ButtonListScreen):
             if self.script_type != SettingsConstants.CUSTOM_DERIVATION:
                 self.components.append(IconTextLine(
                     icon_name=SeedSignerIconConstants.DERIVATION,
-                    label_text="Derivation",
+                    label_text=translator("Derivation"),
                     value_text=SettingsDefinition.get_settings_entry(attr_name=SettingsConstants.SETTING__SCRIPT_TYPES).get_selection_option_display_name_by_value(value=self.script_type),
                     screen_x=GUIConstants.EDGE_PADDING,
                     screen_y=self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING,
+                    font_name=GUIConstants.BODY_FONT_NAME
                 ))
             else:
                 self.components.append(IconTextLine(
                     icon_name=SeedSignerIconConstants.DERIVATION,
-                    label_text="Derivation",
+                    label_text=translator("Derivation"),
                     value_text=self.custom_derivation_path,
                     screen_x=GUIConstants.EDGE_PADDING,
                     screen_y=self.components[-1].screen_y + self.components[-1].height + 2*GUIConstants.COMPONENT_PADDING,
+                    font_name=GUIConstants.BODY_FONT_NAME
                 ))
 
         else:
             self.components.append(IconTextLine(
-                label_text="Wallet descriptor",
+                label_text=translator("Wallet descriptor"),
                 value_text=self.wallet_descriptor_display_name,
                 is_text_centered=True,
                 screen_x=GUIConstants.EDGE_PADDING,

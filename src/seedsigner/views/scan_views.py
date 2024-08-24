@@ -9,9 +9,9 @@ from seedsigner.models.seed import Seed
 from seedsigner.models.settings import SettingsConstants
 from seedsigner.views.settings_views import SettingsIngestSettingsQRView
 from seedsigner.views.view import BackStackView, ErrorView, MainMenuView, NotYetImplementedView, OptionDisabledView, View, Destination
+from seedsigner.views.language_views import translator
 
 logger = logging.getLogger(__name__)
-
 
 class ScanView(View):
     """
@@ -22,8 +22,8 @@ class ScanView(View):
         dedicated errors when an unexpected QR type is scanned (e.g. Scan PSBT was
         selected but a SeedQR was scanned).
     """
-    instructions_text = "Scan a QR code"
-    invalid_qr_type_message = "QRCode not recognized or not yet supported."
+    instructions_text = translator("Scan a QR code")
+    invalid_qr_type_message = translator("QRCode not recognized or not yet supported.")
 
 
     def __init__(self):
@@ -61,10 +61,10 @@ class ScanView(View):
                 # Report QR types in more human-readable text (e.g. QRType
                 # `seed__compactseedqr` as "seed: compactseedqr").
                 return Destination(ErrorView, view_args=dict(
-                    title="Error",
-                    status_headline="Wrong QR Type",
-                    text=self.invalid_qr_type_message + f""", received "{self.decoder.qr_type.replace("__", ": ").replace("_", " ")}\" format""",
-                    button_text="Back",
+                    title=translator("Error"),
+                    status_headline=translator("Wrong QR Type"),
+                    text=self.invalid_qr_type_message + translator(", received \"{qr_type_}\" format",qr_type_=self.decoder.qr_type.replace("__", ": ").replace("_", " ")),
+                    button_text=translator("Back"),
                     next_destination=Destination(BackStackView, skip_current_view=True),
                 ))
 
@@ -73,7 +73,7 @@ class ScanView(View):
 
                 if not seed_mnemonic:
                     # seed is not valid, Exit if not valid with message
-                    raise Exception("Not yet implemented!")
+                    raise Exception(translator("Not yet implemented!"))
                 else:
                     # Found a valid mnemonic seed! All new seeds should be considered
                     #   pending (might set a passphrase, SeedXOR, etc) until finalized.
@@ -161,10 +161,10 @@ class ScanView(View):
             # start everything over.
             self.controller.resume_main_flow = None
             return Destination(ErrorView, view_args=dict(
-                title="Error",
-                status_headline="Unknown QR Type",
-                text="QRCode is invalid or is a data format not yet supported.",
-                button_text="Done",
+                title=translator("Error"),
+                status_headline=translator("Unknown QR Type"),
+                text=translator("QRCode is invalid or is a data format not yet supported."),
+                button_text=translator("Done"),
                 next_destination=Destination(MainMenuView, clear_history=True),
             ))
 
@@ -173,8 +173,8 @@ class ScanView(View):
 
 
 class ScanPSBTView(ScanView):
-    instructions_text = "Scan PSBT"
-    invalid_qr_type_message = "Expected a PSBT"
+    instructions_text = translator("Scan PSBT")
+    invalid_qr_type_message = translator("Expected a PSBT")
 
     @property
     def is_valid_qr_type(self):
@@ -183,8 +183,8 @@ class ScanPSBTView(ScanView):
 
 
 class ScanSeedQRView(ScanView):
-    instructions_text = "Scan SeedQR"
-    invalid_qr_type_message = f"Expected a SeedQR"
+    instructions_text = translator("Scan SeedQR")
+    invalid_qr_type_message = translator("Expected a SeedQR")
 
     @property
     def is_valid_qr_type(self):
@@ -193,8 +193,8 @@ class ScanSeedQRView(ScanView):
 
 
 class ScanWalletDescriptorView(ScanView):
-    instructions_text = "Scan descriptor"
-    invalid_qr_type_message = "Expected a wallet descriptor QR"
+    instructions_text = translator("Scan descriptor")
+    invalid_qr_type_message = translator("Expected a wallet descriptor QR")
 
     @property
     def is_valid_qr_type(self):
@@ -203,8 +203,8 @@ class ScanWalletDescriptorView(ScanView):
 
 
 class ScanAddressView(ScanView):
-    instructions_text = "Scan address QR"
-    invalid_qr_type_message = "Expected an address QR"
+    instructions_text = translator("Scan address QR")
+    invalid_qr_type_message = translator("Expected an address QR")
 
     @property
     def is_valid_qr_type(self):

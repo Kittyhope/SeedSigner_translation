@@ -15,6 +15,7 @@ from seedsigner.models.singleton import Singleton
 from seedsigner.models.threads import BaseThread
 from seedsigner.views.screensaver import ScreensaverScreen
 from seedsigner.views.view import Destination
+from seedsigner.views.language_views import LanguageSelectionView
 
 
 logger = logging.getLogger(__name__)
@@ -189,9 +190,6 @@ class Controller(Singleton):
 
         # Other behavior constants
         controller.screensaver_activation_ms = 2 * 60 * 1000  # two minutes
-    
-        background_import_thread = BackgroundImportThread()
-        background_import_thread.start()
 
         return cls._instance
 
@@ -252,6 +250,10 @@ class Controller(Singleton):
         from seedsigner.gui.toast import RemoveSDCardToastManagerThread
 
         OpeningSplashScreen().start()
+        LanguageSelectionView().run()
+        background_import_thread = BackgroundImportThread()
+        background_import_thread.start()
+
 
         """ Class references can be stored as variables in python!
 

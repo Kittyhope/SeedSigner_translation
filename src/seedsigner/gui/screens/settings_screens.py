@@ -10,7 +10,7 @@ from seedsigner.gui.screens.screen import BaseScreen, BaseTopNavScreen, ButtonLi
 from seedsigner.hardware.buttons import HardwareButtonsConstants
 from seedsigner.hardware.camera import Camera
 from seedsigner.models.settings import SettingsConstants
-
+from seedsigner.views.language_views import translator
 
 @dataclass
 class SettingsEntryUpdateSelectionScreen(ButtonListScreen):
@@ -21,7 +21,7 @@ class SettingsEntryUpdateSelectionScreen(ButtonListScreen):
     selected_button: int = 0
 
     def __post_init__(self):
-        self.title = "Settings"
+        self.title = translator("Settings")
         self.is_bottom_list = True
         self.use_checked_selection_buttons = True
         if self.settings_entry_type == SettingsConstants.TYPE__MULTISELECT:
@@ -33,6 +33,7 @@ class SettingsEntryUpdateSelectionScreen(ButtonListScreen):
         self.components.append(TextArea(
             text=self.display_name,
             font_size=GUIConstants.BODY_FONT_MAX_SIZE,
+            font_name=GUIConstants.BODY_FONT_NAME,
             is_text_centered=True,
             auto_line_break=False,
             screen_y=self.top_nav.height + GUIConstants.COMPONENT_PADDING
@@ -44,6 +45,7 @@ class SettingsEntryUpdateSelectionScreen(ButtonListScreen):
                 text=self.help_text,
                 font_color=GUIConstants.LABEL_FONT_COLOR,
                 is_text_centered=True,
+                font_name=GUIConstants.BODY_FONT_NAME,
                 screen_y=prev_component_bottom + GUIConstants.COMPONENT_PADDING,
             ))
 
@@ -52,7 +54,7 @@ class SettingsEntryUpdateSelectionScreen(ButtonListScreen):
 @dataclass
 class IOTestScreen(BaseTopNavScreen):
     def __post_init__(self):
-        self.title = "I/O Test"
+        self.title = translator("I/O Test")
         self.show_back_button = False
         self.resolution = (96, 96)
         self.framerate = 10
@@ -123,7 +125,7 @@ class IOTestScreen(BaseTopNavScreen):
 
         # Hardware keys UI
         font = Fonts.get_font(GUIConstants.BUTTON_FONT_NAME, GUIConstants.BUTTON_FONT_SIZE)
-        (left, top, text_width, bottom) = font.getbbox(text="Clear", anchor="ls")
+        (left, top, text_width, bottom) = font.getbbox(text=translator("Clear"), anchor="ls")
         icon = Icon(
             icon_name=FontAwesomeIconConstants.CAMERA, 
             icon_size=GUIConstants.ICON_INLINE_FONT_SIZE,
@@ -133,7 +135,7 @@ class IOTestScreen(BaseTopNavScreen):
         key2_y = int(self.canvas_height/2) - int(key_button_height/2)
 
         self.key2_button = Button(
-            text="Clear",   # Initialize with text to set vertical centering
+            text=translator("Clear"),   # Initialize with text to set vertical centering
             width=key_button_width,
             height=key_button_height,
             screen_x=self.canvas_width - key_button_width + GUIConstants.EDGE_PADDING,
@@ -154,12 +156,13 @@ class IOTestScreen(BaseTopNavScreen):
         self.components.append(self.key1_button)
 
         self.key3_button = Button(
-            text="Exit",
+            text=translator("Exit"),
             width=key_button_width,
             height=key_button_height,
             screen_x=self.canvas_width - key_button_width + GUIConstants.EDGE_PADDING,
             screen_y=key2_y + 3*GUIConstants.COMPONENT_PADDING + key_button_height,
             outline_color=GUIConstants.ACCENT_COLOR,
+            font_name=GUIConstants.BUTTON_FONT_NAME
         )
         self.components.append(self.key3_button)
 
@@ -168,7 +171,7 @@ class IOTestScreen(BaseTopNavScreen):
         cur_selected_button = self.key1_button
         msg_height = GUIConstants.ICON_LARGE_BUTTON_SIZE + 2*GUIConstants.COMPONENT_PADDING
         camera_message = TextArea(
-            text="Capturing image...",
+            text=translator("Capturing image..."),
             font_size=GUIConstants.TOP_NAV_TITLE_FONT_SIZE,
             is_text_centered=True,
             height=msg_height,
@@ -214,7 +217,7 @@ class IOTestScreen(BaseTopNavScreen):
                     )
                     with self.renderer.lock:
                         self.canvas.paste(display_version, (0, self.top_nav.height))
-                        self.key2_button.text = "Clear"
+                        self.key2_button.text = translator("Clear")
                         for component in self.components:
                             component.render()
                         self.renderer.show_image()
@@ -281,16 +284,18 @@ class IOTestScreen(BaseTopNavScreen):
 @dataclass
 class DonateScreen(BaseTopNavScreen):
     def __post_init__(self):
-        self.title = "Donate"
+        self.title = translator("Donate")
         super().__post_init__()
 
         self.components.append(TextArea(
-            text="SeedSigner is 100% free & open source, funded solely by the Bitcoin community.\n\nDonate onchain or LN at:",
-            screen_y=self.top_nav.height + 3*GUIConstants.COMPONENT_PADDING,
+            text=translator("SeedSigner is 100% free & open source, funded solely by the Bitcoin community.\n\nDonate onchain or LN at:"),
+            screen_y=self.top_nav.height + 1*GUIConstants.COMPONENT_PADDING,
+            font_name=GUIConstants.REGULAR_FONT_NAME,
+            font_size=16
         ))
 
         self.components.append(TextArea(
-            text="seedsigner.com",
+            text=translator("seedsigner.com"),
             font_size=GUIConstants.TOP_NAV_TITLE_FONT_SIZE + 8,
             font_color=GUIConstants.ACCENT_COLOR,
             supersampling_factor=1,
@@ -302,13 +307,13 @@ class DonateScreen(BaseTopNavScreen):
 @dataclass
 class SettingsQRConfirmationScreen(ButtonListScreen):
     config_name: str = None
-    title: str = "Settings QR"
-    status_message: str = "Settings updated..."
+    title: str = translator("Settings QR")
+    status_message: str = translator("Settings updated...")
     is_bottom_list: bool = True
 
     def __post_init__(self):
         # Customize defaults
-        self.button_data = ["Home"]
+        self.button_data = [translator("Home")]
         self.show_back_button = False
         super().__post_init__()
 
@@ -327,5 +332,6 @@ class SettingsQRConfirmationScreen(ButtonListScreen):
             text=self.status_message,
             is_text_centered=True,
             auto_line_break=True,
-            screen_y=start_y
+            screen_y=start_y,
+            font_name=GUIConstants.REGULAR_FONT_NAME
         ))

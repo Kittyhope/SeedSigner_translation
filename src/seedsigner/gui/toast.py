@@ -3,9 +3,9 @@ import time
 from dataclasses import dataclass
 from seedsigner.gui.components import BaseComponent, GUIConstants, Icon, SeedSignerIconConstants, TextArea
 from seedsigner.models.threads import BaseThread
+import seedsigner.views.language_views as language_views
 
 logger = logging.getLogger(__name__)
-
 
 @dataclass
 class ToastOverlay(BaseComponent):
@@ -15,7 +15,7 @@ class ToastOverlay(BaseComponent):
     height: int = GUIConstants.ICON_TOAST_FONT_SIZE + 2*GUIConstants.EDGE_PADDING
     font_size: int = 19
     outline_thickness: int = 2  # pixels
-
+    font_name: str = GUIConstants.BODY_FONT_NAME
     def __post_init__(self):
         super().__post_init__()
 
@@ -28,24 +28,29 @@ class ToastOverlay(BaseComponent):
             icon_color=self.color
         )
         self.icon.screen_y = self.canvas_height - self.height + int((self.height - self.icon.height)/2)
+        while self.font_size > 10:
+            self.label = TextArea(
+                image_draw=self.image_draw,
+                canvas=self.canvas,
+                text=self.label_text,
+                font_size=self.font_size,
+                font_color=self.color,
+                font_name= GUIConstants.BODY_FONT_NAME,
+                edge_padding=0,
+                is_text_centered=False,
+                auto_line_break=True,
+                width=self.canvas_width - self.icon.screen_x - self.icon.width - GUIConstants.COMPONENT_PADDING - self.outline_thickness,
+                screen_x=self.icon.screen_x + self.icon.width + GUIConstants.COMPONENT_PADDING,
+                allow_text_overflow=False,
+            )
 
-        self.label = TextArea(
-            image_draw=self.image_draw,
-            canvas=self.canvas,
-            text=self.label_text,
-            font_size=self.font_size,
-            font_color=self.color,
-            edge_padding=0,
-            is_text_centered=False,
-            auto_line_break=True,
-            width=self.canvas_width - self.icon.screen_x - self.icon.width - GUIConstants.COMPONENT_PADDING - self.outline_thickness,
-            screen_x=self.icon.screen_x + self.icon.width + GUIConstants.COMPONENT_PADDING,
-            allow_text_overflow=False,
-        )
+            if self.label.height <= self.height:
+                break
+            self.font_size -= 1
 
         # Vertically center the message within the toast (for single- or multi-line
         # messages).
-        self.label.screen_y = self.canvas_height - self.height + self.outline_thickness + int((self.height - 2*self.outline_thickness - self.label.height)/2)
+        self.label.screen_y = self.canvas_height - self.height + int((self.height - self.label.height) / 2)
 
 
     def render(self):
@@ -199,7 +204,7 @@ class RemoveSDCardToastManagerThread(BaseToastOverlayManagerThread):
     def instantiate_toast(self) -> ToastOverlay:
         return ToastOverlay(
             icon_name=SeedSignerIconConstants.MICROSD,
-            label_text="You can remove\nthe SD card now",
+            label_text=language_views.translator("You can remove\nthe SD card now"),
             font_size=GUIConstants.BODY_FONT_SIZE,
             height=GUIConstants.BODY_FONT_SIZE * 2 + GUIConstants.BODY_LINE_SPACING + GUIConstants.EDGE_PADDING,
         )
@@ -219,7 +224,7 @@ class SDCardStateChangeToastManagerThread(BaseToastOverlayManagerThread):
         from seedsigner.hardware.microsd import MicroSD
         if action not in [MicroSD.ACTION__INSERTED, MicroSD.ACTION__REMOVED]:
             raise Exception(f"Invalid MicroSD action: {action}")
-        self.message = "SD card removed" if action == MicroSD.ACTION__REMOVED else "SD card inserted"
+        self.message = language_views.translator("SD card removed") if action == MicroSD.ACTION__REMOVED else language_views.translator("SD card inserted")
 
         super().__init__(*args, **kwargs)
 

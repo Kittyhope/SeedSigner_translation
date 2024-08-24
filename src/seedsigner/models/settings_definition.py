@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Any, List
-
+from seedsigner.models.language_translation import LanguageTranslation
 
 
 class SettingsConstants:
@@ -211,7 +211,6 @@ class SettingsConstants:
     LABEL__CUSTOM_EXTENSION = "Custom Extension"   # Terminology used by Electrum seeds
 
 
-
 @dataclass
 class SettingsEntry:
     """
@@ -341,6 +340,14 @@ class SettingsDefinition:
     # Increment if there are any breaking changes; write migrations to bridge from
     # incompatible prior versions.
     version: int = 1
+
+    _current_selected_language = "EN"
+    
+    @classmethod
+    def set_language(cls, language_code):
+        cls._current_selected_language = language_code
+        cls._translator = lambda text: LanguageTranslation(cls._current_selected_language).translate(text)
+        cls._update_translations()
 
     settings_entries: List[SettingsEntry] = [
         # General options
@@ -530,6 +537,86 @@ class SettingsDefinition:
                       default_value=62),
     ]
 
+    @classmethod
+    def _update_translations(cls):
+        # SettingsConstants 업데이트
+        SettingsConstants.OPTIONS__ENABLED_DISABLED = [
+            (SettingsConstants.OPTION__ENABLED, cls._translator("Enabled")),
+            (SettingsConstants.OPTION__DISABLED, cls._translator("Disabled")),
+        ]
+        SettingsConstants.OPTIONS__ONLY_DISABLED = [
+            (SettingsConstants.OPTION__DISABLED, cls._translator("Disabled")),
+        ]
+        SettingsConstants.OPTIONS__PROMPT_REQUIRED_DISABLED = [
+            (SettingsConstants.OPTION__PROMPT, cls._translator("Prompt")),
+            (SettingsConstants.OPTION__REQUIRED, cls._translator("Required")),
+            (SettingsConstants.OPTION__DISABLED, cls._translator("Disabled")),
+        ]
+        SettingsConstants.OPTIONS__ENABLED_DISABLED_REQUIRED = SettingsConstants.OPTIONS__ENABLED_DISABLED + [
+            (SettingsConstants.OPTION__REQUIRED, cls._translator("Required")),
+        ]
+        SettingsConstants.OPTIONS__ENABLED_DISABLED_PROMPT = SettingsConstants.OPTIONS__ENABLED_DISABLED + [
+            (SettingsConstants.OPTION__PROMPT, cls._translator("Prompt")),
+        ]
+        SettingsConstants.ALL_OPTIONS = SettingsConstants.OPTIONS__ENABLED_DISABLED_PROMPT + [
+            (SettingsConstants.OPTION__REQUIRED, cls._translator("Required")),
+        ]
+
+        SettingsConstants.ALL_COORDINATORS = [
+            (SettingsConstants.COORDINATOR__BLUE_WALLET, cls._translator("BlueWallet")),
+            (SettingsConstants.COORDINATOR__NUNCHUK, cls._translator("Nunchuk")),
+            (SettingsConstants.COORDINATOR__SPARROW, cls._translator("Sparrow")),
+            (SettingsConstants.COORDINATOR__SPECTER_DESKTOP, cls._translator("Specter Desktop")),
+            (SettingsConstants.COORDINATOR__KEEPER, cls._translator("Keeper")),
+        ]
+
+        SettingsConstants.ALL_BTC_DENOMINATIONS = [
+            (SettingsConstants.BTC_DENOMINATION__BTC, cls._translator("BTC")),
+            (SettingsConstants.BTC_DENOMINATION__SATS, cls._translator("sats")),
+            (SettingsConstants.BTC_DENOMINATION__THRESHOLD, cls._translator("Threshold at 0.01")),
+            (SettingsConstants.BTC_DENOMINATION__BTCSATSHYBRID, cls._translator("BTC | sats hybrid")),
+        ]
+
+        SettingsConstants.ALL_DENSITIES = [
+            (SettingsConstants.DENSITY__LOW, cls._translator("Low")),
+            (SettingsConstants.DENSITY__MEDIUM, cls._translator("Medium")),
+            (SettingsConstants.DENSITY__HIGH, cls._translator("High")),
+        ]
+
+        SettingsConstants.ALL_NETWORKS = [
+            (SettingsConstants.MAINNET, cls._translator("Mainnet")),
+            (SettingsConstants.TESTNET, cls._translator("Testnet")),
+            (SettingsConstants.REGTEST, cls._translator("Regtest"))
+        ]
+
+        SettingsConstants.PERSISTENT_SETTINGS__SD_INSERTED__HELP_TEXT = cls._translator("Store Settings on SD card")
+        SettingsConstants.PERSISTENT_SETTINGS__SD_REMOVED__HELP_TEXT = cls._translator("Insert SD card to enable")
+
+        SettingsConstants.ALL_SIG_TYPES = [
+            (SettingsConstants.SINGLE_SIG, cls._translator("Single Sig")),
+            (SettingsConstants.MULTISIG, cls._translator("Multisig")),
+        ]
+
+        SettingsConstants.ALL_SCRIPT_TYPES = [
+            (SettingsConstants.NATIVE_SEGWIT, cls._translator("Native Segwit")),
+            (SettingsConstants.NESTED_SEGWIT, cls._translator("Nested Segwit")),
+            (SettingsConstants.LEGACY_P2PKH, cls._translator("Legacy")),
+            (SettingsConstants.TAPROOT, cls._translator("Taproot")),
+            (SettingsConstants.CUSTOM_DERIVATION, cls._translator("Custom Derivation")),
+        ]
+
+        SettingsConstants.LABEL__BIP39_PASSPHRASE = cls._translator("BIP-39 Passphrase")
+        SettingsConstants.LABEL__CUSTOM_EXTENSION = cls._translator("Custom Extension")
+
+        # settings_entries 업데이트
+        for entry in cls.settings_entries:
+            entry.display_name = cls._translator(entry.display_name)
+            if entry.help_text:
+                entry.help_text = cls._translator(entry.help_text)
+            if entry.selection_options:
+                entry.selection_options = [
+                    (value, cls._translator(display)) for value, display in entry.selection_options
+                ]
 
     @classmethod
     def get_settings_entries(cls, visibility: str = SettingsConstants.VISIBILITY__GENERAL) -> List[SettingsEntry]:

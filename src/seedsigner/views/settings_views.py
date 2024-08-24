@@ -6,14 +6,14 @@ from .view import View, Destination, MainMenuView
 
 from seedsigner.gui.screens import (RET_CODE__BACK_BUTTON, ButtonListScreen, settings_screens)
 from seedsigner.models.settings import Settings, SettingsConstants, SettingsDefinition
-
+from seedsigner.views.language_views import translator
 logger = logging.getLogger(__name__)
 
 
 
 class SettingsMenuView(View):
-    IO_TEST = "I/O test"
-    DONATE = "Donate"
+    IO_TEST = translator("I/O test")
+    DONATE = translator("Donate")
 
     def __init__(self, visibility: str = SettingsConstants.VISIBILITY__GENERAL, selected_attr: str = None, initial_scroll: int = 0):
         super().__init__()
@@ -38,25 +38,25 @@ class SettingsMenuView(View):
                     break
 
         if self.visibility == SettingsConstants.VISIBILITY__GENERAL:
-            title = "Settings"
+            title = translator("Settings")
 
             # Set up the next nested level of menuing
-            button_data.append(("Advanced", None, None, None, SeedSignerIconConstants.CHEVRON_RIGHT))
+            button_data.append((translator("Advanced"), None, None, None, SeedSignerIconConstants.CHEVRON_RIGHT))
             next_destination = Destination(SettingsMenuView, view_args={"visibility": SettingsConstants.VISIBILITY__ADVANCED})
 
             button_data.append(self.IO_TEST)
             button_data.append(self.DONATE)
 
         elif self.visibility == SettingsConstants.VISIBILITY__ADVANCED:
-            title = "Advanced"
+            title = translator("Advanced")
 
             # So far there are no real Developer options; disabling for now
-            # button_data.append(("Developer Options", None, None, None, SeedSignerIconConstants.CHEVRON_RIGHT))
+            # button_data.append((translator("Developer Options"), None, None, None, SeedSignerIconConstants.CHEVRON_RIGHT))
             # next_destination = Destination(SettingsMenuView, view_args={"visibility": SettingsConstants.VISIBILITY__DEVELOPER})
             next_destination = None
         
         elif self.visibility == SettingsConstants.VISIBILITY__DEVELOPER:
-            title = "Dev Options"
+            title = translator("Dev Options")
             next_destination = None
 
         selected_menu_num = self.run_screen(
@@ -200,9 +200,9 @@ class SettingsIngestSettingsQRView(View):
         self.settings.update(settings_update_dict)
 
         if MicroSD.get_instance().is_inserted and self.settings.get_value(SettingsConstants.SETTING__PERSISTENT_SETTINGS) == SettingsConstants.OPTION__ENABLED:
-            self.status_message = "Persistent Settings enabled. Settings saved to SD card."
+            self.status_message = translator("Persistent Settings enabled. Settings saved to SD card.")
         else:
-            self.status_message = "Settings updated in temporary memory"
+            self.status_message = translator("Settings updated in temporary memory")
 
 
     def run(self):

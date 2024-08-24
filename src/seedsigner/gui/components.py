@@ -13,9 +13,8 @@ from typing import List, Tuple
 from seedsigner.models.settings import Settings
 from seedsigner.models.settings_definition import SettingsConstants
 from seedsigner.models.singleton import Singleton
-
+components_current_selected_language="EN"
 logger = logging.getLogger(__name__)
-
 
 # TODO: Remove all pixel hard coding
 class GUIConstants:
@@ -68,6 +67,8 @@ class GUIConstants:
     BUTTON_HEIGHT = 32
     BUTTON_SELECTED_FONT_COLOR = BACKGROUND_COLOR
     
+    REGULAR_FONT_NAME = "OpenSans-Regular"
+
     NOTIFICATION_COLOR = "#00F100"
 
 
@@ -293,7 +294,7 @@ class TextArea(BaseComponent):
     auto_line_break: bool = True
     allow_text_overflow: bool = False
     height_ignores_below_baseline: bool = False  # If True, characters that render below the baseline (e.g. "pqgy") will not affect the final height calculation
-
+    back_button_width_x: int = 0
 
     def __post_init__(self):
         super().__post_init__()
@@ -306,47 +307,55 @@ class TextArea(BaseComponent):
 
         self.line_spacing = GUIConstants.BODY_LINE_SPACING
 
-        # We have to figure out if and where to make line breaks in the text so that it
-        #   fits in its bounding rect (plus accounting for edge padding) using its given
-        #   font.
-        # Do initial calcs without worrying about supersampling.
-        self.text_lines = reflow_text_for_width(
-            text=self.text,
-            width=self.width - 2*self.edge_padding,
-            font_name=self.font_name,
-            font_size=self.font_size,
-            allow_text_overflow=self.allow_text_overflow,
-        )
+        current_font_size_ = self.font_size
+        min_font_size_ = max(1, self.font_size-4)
 
-        # Calculate the actual font height from the "baseline" anchor ("_s")
-        font = Fonts.get_font(self.font_name, self.font_size)
+        while current_font_size_ > min_font_size_:
+            # We have to figure out if and where to make line breaks in the text so that it
+            #   fits in its bounding rect (plus accounting for edge padding) using its given
+            #   font.
+            # Do initial calcs without worrying about supersampling.
+            self.text_lines = reflow_text_for_width(
+                text=self.text,
+                width=self.width - 2*self.edge_padding-self.back_button_width_x,
+                font_name=self.font_name,
+                font_size=current_font_size_,
+                allow_text_overflow=self.allow_text_overflow,
+            )
 
-        # Note: from the baseline anchor, `top` is a negative number while `bottom`
-        # conveys the height of the pixels that rendered below the baseline, if any
-        # (e.g. "py" in "python").
-        (left, top, right, bottom) = font.getbbox(self.text, anchor="ls")
-        self.text_height_above_baseline = -1 * top
-        self.text_height_below_baseline = bottom
+            # Calculate the actual font height from the "baseline" anchor ("_s")
+            font = Fonts.get_font(self.font_name, current_font_size_)
 
-        # Initialize the text rendering relative to the baseline
-        self.text_y = self.text_height_above_baseline
+            # Note: from the baseline anchor, `top` is a negative number while `bottom`
+            # conveys the height of the pixels that rendered below the baseline, if any
+            # (e.g. "py" in "python").
+            (left, top, right, bottom) = font.getbbox(self.text, anchor="ls")
+            self.text_height_above_baseline = -1 * top
+            self.text_height_below_baseline = bottom
 
-        # Other components, like IconTextLine will need to know how wide the actual
-        # rendered text will be, separate from the TextArea's defined overall `width`.
-        self.text_width = max(line["text_width"] for line in self.text_lines)
+            # Initialize the text rendering relative to the baseline
+            self.text_y = self.text_height_above_baseline
 
-        # Calculate the actual height
-        if len(self.text_lines) == 1:
-            total_text_height = self.text_height_above_baseline
-            if not self.height_ignores_below_baseline:
-                total_text_height += self.text_height_below_baseline
-        else:
-            # Multiply for the number of lines plus the spacer
-            total_text_height = self.text_height_above_baseline * len(self.text_lines) + self.line_spacing * (len(self.text_lines) - 1)
+            # Other components, like IconTextLine will need to know how wide the actual
+            # rendered text will be, separate from the TextArea's defined overall `width`.
+            self.text_width = max(line["text_width"] for line in self.text_lines)
 
-            if not self.height_ignores_below_baseline and re.findall(f"[gjpqy]", self.text_lines[-1]["text"]):
-                # Last line has at least one char that dips below baseline
-                total_text_height += self.text_height_below_baseline
+            # Calculate the actual height
+            if len(self.text_lines) == 1:
+                total_text_height = self.text_height_above_baseline
+                if not self.height_ignores_below_baseline:
+                    total_text_height += self.text_height_below_baseline
+            else:
+                # Multiply for the number of lines plus the spacer
+                total_text_height = self.text_height_above_baseline * len(self.text_lines) + self.line_spacing * (len(self.text_lines) - 1)
+
+                if not self.height_ignores_below_baseline and re.findall(f"[gjpqy]", self.text_lines[-1]["text"]):
+                    # Last line has at least one char that dips below baseline
+                    total_text_height += self.text_height_below_baseline
+            if self.height is None or total_text_height <= self.height or self.allow_text_overflow:
+                break
+            else:
+                current_font_size_ -= 1
 
         if self.height is None:
             # Autoscale height to text lines
@@ -363,6 +372,8 @@ class TextArea(BaseComponent):
             else:
                 # Vertically center the text's starting point
                 self.text_y += int(self.height - total_text_height)/2
+
+        self.font_size = current_font_size_
 
 
     def render(self):
@@ -517,6 +528,7 @@ class IconTextLine(BaseComponent):
                 screen_x=text_screen_x,
                 screen_y=self.screen_y,
                 allow_text_overflow=False,
+                font_name=GUIConstants.REGULAR_FONT_NAME
             )
         else:
             self.label_textarea = None        
@@ -1240,9 +1252,11 @@ class TopNav(BaseComponent):
             )
 
         min_text_x = 0
+        back_button_width_x = 0
         if self.show_back_button:
             # Don't let the title intrude on the BACK button
             min_text_x = self.left_button.screen_x + self.left_button.width + GUIConstants.COMPONENT_PADDING
+            back_button_width_x = self.left_button.width + GUIConstants.COMPONENT_PADDING
 
         if self.icon_name:
             self.title = IconTextLine(
@@ -1269,6 +1283,7 @@ class TopNav(BaseComponent):
                 font_name=self.font_name,
                 font_size=self.font_size,
                 height_ignores_below_baseline=True,  # Consistently vertically center text, ignoring chars that render below baseline (e.g. "pqyj")
+                back_button_width_x=back_button_width_x
             )
 
 
@@ -1296,6 +1311,23 @@ class TopNav(BaseComponent):
             self.right_button.is_selected = self.is_selected
             self.right_button.render()
 
+    def update_title(self, new_title: str):
+        self.text = new_title
+        min_text_x = self.left_button.screen_x + self.left_button.width + GUIConstants.COMPONENT_PADDING
+        back_button_width_x = self.left_button.width + GUIConstants.COMPONENT_PADDING
+        self.title = TextArea(
+            screen_x=0,
+            screen_y=0,
+            min_text_x=min_text_x,
+            width=self.width,
+            height=self.height,
+            text=new_title,
+            is_text_centered=True,
+            font_name=self.font_name,
+            font_size=self.font_size,
+            height_ignores_below_baseline=True,
+            back_button_width_x=back_button_width_x
+        )
 
 
 def linear_interp(a, b, t):
@@ -1342,13 +1374,53 @@ def reflow_text_for_width(text: str,
                           font_size=GUIConstants.BODY_FONT_SIZE,
                           allow_text_overflow: bool=False) -> list[dict]:
     """
-    Reflows text to fit within `width` by breaking long lines up.
+    Reflows text to fit within `width` by breaking long lines up, handling different languages.
 
     Returns a List with each reflowed line of text as its own entry.
 
     Note: It is up to the calling code to handle any height considerations for the 
     resulting lines of text.
-    """
+    """    
+
+    if components_current_selected_language in ["JP", "SC", "TC"]:  # Include TC for Traditional Chinese
+        return reflow_text_no_spaces(text, width, font_name, font_size, allow_text_overflow)
+    else:
+        return reflow_text_with_spaces(text, width, font_name, font_size, allow_text_overflow)
+
+def reflow_text_no_spaces(text: str, width: int, font_name, font_size, allow_text_overflow: bool) -> list[dict]:
+
+    font = Fonts.get_font(font_name=font_name, size=font_size)
+    text_lines = []
+    
+    current_line = ""
+    current_width = 0
+    
+    for char in text:
+        if char == '\n':
+            text_lines.append({"text": current_line, "text_width": current_width})
+            current_line = ""
+            current_width = 0
+            continue
+
+        char_width = font.getbbox(char, anchor="ls")[2]  # Get the width of the character
+        
+        if current_width + char_width > width:
+            # If adding this character would exceed the width, add the current line to text_lines
+            text_lines.append({"text": current_line, "text_width": current_width})
+            current_line = char
+            current_width = char_width
+        else:
+            # Otherwise, add the character to the current line
+            current_line += char
+            current_width += char_width
+    
+    # Add any remaining text as the last line
+    if current_line:
+        text_lines.append({"text": current_line, "text_width": current_width}) 
+
+    return text_lines   
+
+def reflow_text_with_spaces(text: str, width: int, font_name, font_size, allow_text_overflow: bool) -> list[dict]:
     # We have to figure out if and where to make line breaks in the text so that it
     #   fits in its bounding rect (plus accounting for edge padding) using its given
     #   font.
@@ -1383,6 +1455,14 @@ def reflow_text_for_width(text: str,
                 # Candidate line is still too long. Restrict search range down.
                 if min_index + 1 == index:
                     if index == 1:
+                        if components_current_selected_language == "DE" and len(words[0]) >= 15:
+                            split_point = 1
+                            while split_point < len(words[0]):
+                                (left, top, right, bottom) = font.getbbox(words[0][:split_point], anchor="ls")
+                                if right - left >= width:
+                                    break
+                                split_point += 1
+                            return (1, right - left, split_point - 1)
                         # It's just one long, unbreakable word. There's no good
                         # solution here. Just accept it as is and let it render off
                         # the edges.
@@ -1399,7 +1479,7 @@ def reflow_text_for_width(text: str,
                 # Candidate line is possibly shorter than necessary.
                 return _binary_len_search(min_index=index, max_index=max_index)
 
-        if len(text.split()) == 1 and not allow_text_overflow:
+        if len(text.split()) == 1 and not allow_text_overflow and components_current_selected_language != "DE":
             # No whitespace chars to split on!
             raise TextDoesNotFitException("Text cannot fit in target rect with this font+size")
 
@@ -1411,9 +1491,15 @@ def reflow_text_for_width(text: str,
                 _add_text_line("", 0)
             else:
                 while words:
-                    (index, tw) = _binary_len_search(0, len(words))
-                    _add_text_line(" ".join(words[0:index]), tw)
-                    words = words[index:]
+                    result_ = _binary_len_search(0, len(words))
+                    if len(result_) == 2:
+                        index, tw = result_
+                        _add_text_line(" ".join(words[0:index]), tw)
+                        words = words[index:]
+                    else:
+                        index, tw, split_point = result_
+                        _add_text_line(words[0][:split_point], tw)
+                        words[0] = words[0][split_point:]
 
     return text_lines
 
