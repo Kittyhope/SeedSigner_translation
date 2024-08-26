@@ -7,9 +7,10 @@ class LanguageTranslation:
         self.translations = self.load_translations()
 
     def load_translations(self):
-        file_path = os.path.join(os.path.dirname(__file__), '..', 'language', f'{self.language_code}.json')
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        file_path = os.path.join(base_dir, 'language', f'{self.language_code}.json')
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"Translation file {self.language_code}.json not found.")
+            file_path = os.path.join(base_dir, 'language', f'EN.json')
         
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
