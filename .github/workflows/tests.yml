@@ -39,9 +39,9 @@ jobs:
           pip install .
       - name: Copy translation files
         run: |
-          mkdir -p /opt/hostedtoolcache/Python/${{ matrix.python-version }}/x64/lib/python${{ matrix.python-version }}/site-packages/seedsigner/language/
-          cp -r src/seedsigner/language/* /opt/hostedtoolcache/Python/${{ matrix.python-version }}/x64/lib/python${{ matrix.python-version }}/site-packages/seedsigner/language/
-          ls -l /opt/hostedtoolcache/Python/${{ matrix.python-version }}/x64/lib/python${{ matrix.python-version }}/site-packages/seedsigner/language/
+          mkdir -p /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/seedsigner/language/
+          cp -r src/seedsigner/language/* /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/seedsigner/language/
+          ls -l /opt/hostedtoolcache/Python/3.10.14/x64/lib/python3.10/site-packages/seedsigner/language/
       - name: Test with pytest
         run: |
           mkdir artifacts
