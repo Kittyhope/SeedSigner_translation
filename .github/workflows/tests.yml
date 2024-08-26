@@ -37,6 +37,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r tests/requirements.txt
           pip install .
+      - name: Copy translation files
+        run: |
+          mkdir -p /opt/hostedtoolcache/Python/${{ matrix.python-version }}/x64/lib/python${{ matrix.python-version }}/site-packages/seedsigner/language/
+          cp src/seedsigner/language/EN.json /opt/hostedtoolcache/Python/${{ matrix.python-version }}/x64/lib/python${{ matrix.python-version }}/site-packages/seedsigner/language/
       - name: Test with pytest
         run: |
           mkdir artifacts
