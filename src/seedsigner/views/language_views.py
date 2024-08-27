@@ -19,7 +19,7 @@ class LanguageSelectionView(View):
 
     def run(self):
         global current_selected_language, translator  # 전역 변수 사용 선언
-        selected_language = self.run_screen(LanguageSelectionScreen)
+        selected_language = "English"
 
         # 언어 선택에 따라 언어 코드를 설정합니다.
         language_code_map = {
