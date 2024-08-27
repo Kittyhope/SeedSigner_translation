@@ -203,8 +203,8 @@ class ScanWalletDescriptorView(ScanView):
 
 
 class ScanAddressView(ScanView):
-    instructions_text = translator("Scan address QR")
-    invalid_qr_type_message = translator("Expected an address QR")
+    instructions_text = "Scan address QR"
+    invalid_qr_type_message = "Expected an address QR"
 
     @property
     def is_valid_qr_type(self):
