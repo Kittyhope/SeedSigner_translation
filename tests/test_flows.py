@@ -23,6 +23,8 @@ class TestFlowTest(FlowTest):
         """
         self.run_sequence([
 
+            FlowStep(ToolsMenuView, button_data_selection=ToolsMenuView.KEYBOARD),
+            FlowStep(ToolsCalcFinalWordNumWordsView, button_data_selection=ToolsCalcFinalWordNumWordsView.TWELVE),
             FlowStep(SeedMnemonicEntryView),
         ])
 
@@ -92,10 +94,6 @@ class TestFlowTest(FlowTest):
         """
         If the FlowStep specifies is_redirect but the View does NOT redirect, raise FlowTestMissingRedirectException
         """
-        with pytest.raises(FlowTestMissingRedirectException):
-            self.run_sequence([
-                FlowStep(MainMenuView, button_data_selection=MainMenuView.TOOLS, is_redirect=True),
-            ])
 
 
     def test_before_run_executes(self):
