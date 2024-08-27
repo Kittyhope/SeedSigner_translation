@@ -35,7 +35,7 @@ class LanguageSelectionView(View):
 
         # selected_language를 적절한 언어 코드로 변환하여 설정합니다.
         current_selected_language = language_code_map.get(selected_language, "EN")  # 기본값은 'en'으로 설정
-        view.view_current_selected_language=current_selected_language
+        view.view_current_selected_language="EN"
         screen.screen_current_selected_language=current_selected_language
         components.components_current_selected_language=current_selected_language
 
