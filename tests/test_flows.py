@@ -1,7 +1,7 @@
 import pytest
 
 # Must import test base before the Controller
-from base import FlowTest, FlowStep, FlowTestMissingRedirectException, FlowTestUnexpectedRedirectException, FlowTestUnexpectedViewException, FlowTestInvalidButtonDataSelectionException, BaseTest
+from base import FlowTest, FlowStep, FlowTestMissingRedirectException, FlowTestUnexpectedRedirectException, FlowTestUnexpectedViewException, FlowTestInvalidButtonDataSelectionException
 
 from seedsigner.controller import Controller
 from seedsigner.gui.screens.screen import RET_CODE__BACK_BUTTON, RET_CODE__POWER_BUTTON
@@ -11,6 +11,7 @@ from seedsigner.views.psbt_views import PSBTSelectSeedView
 from seedsigner.views.seed_views import SeedBackupView, SeedMnemonicEntryView, SeedOptionsView, SeedsMenuView
 from seedsigner.views.view import MainMenuView, PowerOptionsView, UnhandledExceptionView
 from seedsigner.views.tools_views import ToolsMenuView, ToolsCalcFinalWordNumWordsView
+
 
 
 class TestFlowTest(FlowTest):
