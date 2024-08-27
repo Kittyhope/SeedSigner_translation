@@ -8,7 +8,7 @@ import seedsigner.models.settings_definition as settings_definition
 import seedsigner.gui.components as components
 # 전역 변수 선언
 current_selected_language = None
-translator = None
+translator = LanguageTranslation("EN").translate
 
 class LanguageSelectionView(View):
     def __init__(self):
