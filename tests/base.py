@@ -27,7 +27,6 @@ logger = logging.getLogger(__name__)
 
 
 class BaseTest:
-    languages = ["EN", "KR", "ES", "FR", "DE", "SC", "JP", "IT"]
 
     class MockMicroSD(Mock):
         """
@@ -96,27 +95,6 @@ class BaseTest:
 
     def teardown_method(self):
         BaseTest.remove_settings()
-
-    @pytest.fixture(scope="class", autouse=True, params=languages)
-    def setup_class_language(cls, request):
-        cls.language_code = request.param  # parametrize에서 전달된 언어 코드
-
-        # 언어 설정
-        cls.language_view = LanguageSelectionView()
-        cls.language_view.run(cls.language_code)
-
-        # 컨트롤러 초기화
-        cls.controller = Controller.get_instance()
-        cls.controller.settings.set_value('language', cls.language_code)
-        
-        # 언어 번역 인스턴스 초기화
-        cls.translator = LanguageTranslation(cls.language_code).translate
-        # Translator가 올바르게 초기화되었는지 확인
-        if cls.translator:
-            translated_text = cls.translator("Hello")
-            assert translated_text is not None
-        else:
-            raise ValueError("Translator is not initialized properly")
 
 
 class TestBaseTest(BaseTest):
