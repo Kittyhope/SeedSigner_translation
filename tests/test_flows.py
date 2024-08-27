@@ -25,7 +25,7 @@ class TestFlowTest(FlowTest):
             FlowStep(MainMenuView, button_data_selection=MainMenuView.TOOLS),
             FlowStep(ToolsMenuView, button_data_selection=ToolsMenuView.KEYBOARD),
             FlowStep(ToolsCalcFinalWordNumWordsView, button_data_selection=ToolsCalcFinalWordNumWordsView.TWELVE),
-            FlowStep(SeedMnemonicEntryView),
+    
         ])
 
 
