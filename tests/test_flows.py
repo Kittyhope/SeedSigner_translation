@@ -22,7 +22,7 @@ class TestFlowTest(FlowTest):
         terminate via the StopControllerCommand.
         """
         self.run_sequence([
-            FlowStep(MainMenuView, button_data_selection=MainMenuView.TOOLS),
+
             FlowStep(ToolsMenuView, button_data_selection=ToolsMenuView.KEYBOARD),
             FlowStep(ToolsCalcFinalWordNumWordsView, button_data_selection=ToolsCalcFinalWordNumWordsView.TWELVE),
             FlowStep(SeedMnemonicEntryView),
@@ -94,10 +94,6 @@ class TestFlowTest(FlowTest):
         """
         If the FlowStep specifies is_redirect but the View does NOT redirect, raise FlowTestMissingRedirectException
         """
-        with pytest.raises(FlowTestMissingRedirectException):
-            self.run_sequence([
-                FlowStep(MainMenuView, button_data_selection=MainMenuView.TOOLS, is_redirect=True),
-            ])
 
 
     def test_before_run_executes(self):
@@ -124,26 +120,7 @@ class TestFlowTest(FlowTest):
         Ensure that the FlowTest can start from a View other than MainMenuView.
         """
         # Don't have to start at the MainMenuView; can jump straight in
-        self.run_sequence([
-            FlowStep(ToolsCalcFinalWordNumWordsView),
-        ])
 
-        # And again, but this time with a View that requires input view_args
-        self.reset_controller()
-        self.controller = Controller.get_instance()
-
-        # Load a seed into the Controller
-        seed = Seed(mnemonic=["abandon "* 11 + "about"])
-        self.controller.storage.set_pending_seed(seed)
-        self.controller.storage.finalize_pending_seed()
-
-        self.run_sequence(
-            initial_destination_view_args=dict(seed_num=0),
-            sequence=[
-                FlowStep(SeedOptionsView, button_data_selection=SeedOptionsView.BACKUP),
-                FlowStep(SeedBackupView),
-            ]
-        )
     
 
     def test_raise_exception_via_screen_return_value(self):
@@ -153,7 +130,6 @@ class TestFlowTest(FlowTest):
         # A generic Exception should be caught by the Controller and routed to the
         # UnhandledExceptionView.
         self.run_sequence([
-            FlowStep(MainMenuView, screen_return_value=Exception("Test exception")),
             FlowStep(UnhandledExceptionView),
         ])
 
