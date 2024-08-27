@@ -346,7 +346,7 @@ class SettingsDefinition:
     @classmethod
     def set_language(cls, language_code):
         cls._current_selected_language = language_code
-        cls._translator = lambda text: LanguageTranslation(cls._current_selected_language).translate(text)
+        cls._translator = lambda text: LanguageTranslation("EN").translate(text)
         cls._update_translations()
 
     settings_entries: List[SettingsEntry] = [
