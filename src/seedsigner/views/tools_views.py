@@ -27,8 +27,8 @@ logger = logging.getLogger(__name__)
 class ToolsMenuView(View):
     IMAGE = (translator(" New seed"), FontAwesomeIconConstants.CAMERA)
     DICE = (translator("New seed"), FontAwesomeIconConstants.DICE)
-    KEYBOARD = (translator("Calc 12th/24th word"), FontAwesomeIconConstants.KEYBOARD)
-    ADDRESS_EXPLORER = translator("Address Explorer")
+    KEYBOARD = (translator("Calc 12th"), FontAwesomeIconConstants.KEYBOARD)
+    ADDRESS_EXPLORER = translator("Address Expl")
     VERIFY_ADDRESS = translator("Verify address")
 
     def run(self):
