@@ -41,10 +41,10 @@ class LanguageSelectionView(View):
 
         translator = LanguageTranslation("EN").translate
         font_current_selected_language= current_selected_language if current_selected_language in ("KR", "SC", "JP") else "EN"
-        GUIConstants.TOP_NAV_TITLE_FONT_NAME = f'NotoSansEN-SemiBold'
-        GUIConstants.BODY_FONT_NAME = f'NotoSansEN-SemiBold'
-        GUIConstants.BUTTON_FONT_NAME = f'NotoSansEN-SemiBold'
-        GUIConstants.REGULAR_FONT_NAME = f'NotoSansEN-Regular'
+        GUIConstants.TOP_NAV_TITLE_FONT_NAME = 'NotoSansEN-SemiBold'
+        GUIConstants.BODY_FONT_NAME = 'NotoSansEN-SemiBold'
+        GUIConstants.BUTTON_FONT_NAME = 'NotoSansEN-SemiBold'
+        GUIConstants.REGULAR_FONT_NAME = 'NotoSansEN-Regular'
 
         settings_definition.SettingsDefinition.set_language("EN")
         
