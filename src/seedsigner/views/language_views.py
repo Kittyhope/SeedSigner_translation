@@ -7,9 +7,12 @@ import seedsigner.gui.screens.screen as screen
 import seedsigner.models.settings_definition as settings_definition
 import seedsigner.gui.components as components
 # 전역 변수 선언
-current_selected_language = None
+current_selected_language = "EN"
 translator = LanguageTranslation("EN").translate
-
+view.view_current_selected_language="EN"
+screen.screen_current_selected_language="EN"
+components.components_current_selected_language="EN"
+settings_definition.SettingsDefinition.set_language("EN")
 class LanguageSelectionView(View):
     def __init__(self):
         super().__init__()
