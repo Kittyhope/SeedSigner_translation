@@ -20,8 +20,9 @@ from seedsigner.models.seed import Seed
 from seedsigner.models.settings_definition import SettingsConstants
 from seedsigner.views.seed_views import SeedDiscardView, SeedFinalizeView, SeedMnemonicEntryView, SeedOptionsView, SeedWordsWarningView, SeedExportXpubScriptTypeView
 from seedsigner.views.language_views import translator
+from seedsigner.models.language_translation import LanguageTranslation
 from .view import View, Destination, BackStackView
-
+translator = LanguageTranslation("EN").translate
 logger = logging.getLogger(__name__)
 
 class ToolsMenuView(View):
