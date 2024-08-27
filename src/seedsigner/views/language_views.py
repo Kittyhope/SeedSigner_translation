@@ -36,17 +36,17 @@ class LanguageSelectionView(View):
         # selected_language를 적절한 언어 코드로 변환하여 설정합니다.
         current_selected_language = language_code_map.get(selected_language, "EN")  # 기본값은 'en'으로 설정
         view.view_current_selected_language="EN"
-        screen.screen_current_selected_language=current_selected_language
-        components.components_current_selected_language=current_selected_language
+        screen.screen_current_selected_language="EN"
+        components.components_current_selected_language="EN"
 
-        translator = LanguageTranslation(current_selected_language).translate
+        translator = LanguageTranslation("EN").translate
         font_current_selected_language= current_selected_language if current_selected_language in ("KR", "SC", "JP") else "EN"
-        GUIConstants.TOP_NAV_TITLE_FONT_NAME = f'NotoSans{font_current_selected_language}-SemiBold'
-        GUIConstants.BODY_FONT_NAME = f'NotoSans{font_current_selected_language}-SemiBold'
-        GUIConstants.BUTTON_FONT_NAME = f'NotoSans{font_current_selected_language}-SemiBold'
-        GUIConstants.REGULAR_FONT_NAME = f'NotoSans{font_current_selected_language}-Regular'
+        GUIConstants.TOP_NAV_TITLE_FONT_NAME = f'NotoSansEN-SemiBold'
+        GUIConstants.BODY_FONT_NAME = f'NotoSansEN-SemiBold'
+        GUIConstants.BUTTON_FONT_NAME = f'NotoSansEN-SemiBold'
+        GUIConstants.REGULAR_FONT_NAME = f'NotoSansEN-Regular'
 
-        settings_definition.SettingsDefinition.set_language(current_selected_language)
+        settings_definition.SettingsDefinition.set_language("EN")
         
         # 언어 선택 후 메인 메뉴로 이동
         return Destination(MainMenuView)
