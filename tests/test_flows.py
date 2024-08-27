@@ -22,7 +22,7 @@ class TestFlowTest(FlowTest):
         terminate via the StopControllerCommand.
         """
         self.run_sequence([
-            FlowStep(MainMenuView, button_data_selection=MainMenuView.TOOLS),
+
             FlowStep(SeedMnemonicEntryView),
         ])
 
