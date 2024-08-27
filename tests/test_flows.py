@@ -13,7 +13,11 @@ from seedsigner.views.view import MainMenuView, PowerOptionsView, UnhandledExcep
 from seedsigner.views.tools_views import ToolsMenuView, ToolsCalcFinalWordNumWordsView
 
 
-
+class TestFlows(BaseTest):
+    def test_some_flow(self):
+        # Translator가 올바르게 초기화되었는지 확인 (BaseTest에서 이미 검증됨)
+        translated_text = self.translator("Seeds")
+        assert translated_text is not None
 class TestFlowTest(FlowTest):
 
     def test_simple_flow(self):

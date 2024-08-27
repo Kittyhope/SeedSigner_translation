@@ -111,7 +111,12 @@ class BaseTest:
         
         # 언어 번역 인스턴스 초기화
         cls.translator = LanguageTranslation(cls.language_code).translate
-
+        # Translator가 올바르게 초기화되었는지 확인
+        if cls.translator:
+            translated_text = cls.translator("Hello")
+            assert translated_text is not None
+        else:
+            raise ValueError("Translator is not initialized properly")
 
 
 class TestBaseTest(BaseTest):
