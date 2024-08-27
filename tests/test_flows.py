@@ -23,7 +23,6 @@ class TestFlowTest(FlowTest):
         """
         self.run_sequence([
             FlowStep(MainMenuView, button_data_selection=MainMenuView.TOOLS),
-            FlowStep(ToolsMenuView, button_data_selection=ToolsMenuView.KEYBOARD),
             FlowStep(SeedMnemonicEntryView),
         ])
 
