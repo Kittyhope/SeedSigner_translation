@@ -33,9 +33,9 @@ jobs:
       - name: checkout seedsigner-os
         uses: actions/checkout@v3
         with:
-          repository: "seedsigner/seedsigner-os"
+          repository: "Kittyhope/seedsigner-os"
           # use the os-ref input parameter in case of workflow_dispatch or default to main in case of cron triggers
-          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.os-ref || 'main' }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.os-ref || 'translation' }}
           submodules: true
           path: "seedsigner-os"
           # get full history + tags for "git describe"
