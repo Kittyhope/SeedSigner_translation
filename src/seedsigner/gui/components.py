@@ -101,6 +101,7 @@ class FontAwesomeIconConstants:
     SQUARE_CARET_UP = "\uf151"
     UNLOCK = "\uf09c"
     X = "\u0058"
+    RANDOM = "\uf074"
 
 
 class SeedSignerIconConstants:
