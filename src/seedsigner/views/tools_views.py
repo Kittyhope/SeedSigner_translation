@@ -777,7 +777,7 @@ def generate_random_entropy(num_bits):
 
     return final_hash[:num_bits // 8 + (1 if num_bits % 8 else 0)]
 
-class RandomEntropyMnemonicLengthView(View):
+class ToolsRandomEntropyMnemonicLengthView(View):
     def run(self):
         TWELVE_WORDS = translator("12 words")
         TWENTY_FOUR_WORDS = translator("24 words")
@@ -798,10 +798,13 @@ class RandomEntropyMnemonicLengthView(View):
             num_bits = 256
 
         entropy = generate_random_entropy(num_bits)
-        mnemonic = Seed.bytes_to_mnemonic(entropy)
+        mnemonic = mnemonic_generation.generate_mnemonic_from_bytes(entropy)
 
         seed = Seed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))
         self.controller.storage.set_pending_seed(seed)
         
         from seedsigner.views.seed_views import SeedWordsWarningView
         return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
+    
+class ToolsCustomEntropyMnemonicLengthView(View):
+    None

@@ -102,6 +102,7 @@ class FontAwesomeIconConstants:
     UNLOCK = "\uf09c"
     X = "\u0058"
     RANDOM = "\uf074"
+    CUSTOM = "\uf013"
 
 
 class SeedSignerIconConstants:
