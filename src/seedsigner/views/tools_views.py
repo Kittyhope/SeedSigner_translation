@@ -806,5 +806,3 @@ class ToolsRandomEntropyMnemonicLengthView(View):
         from seedsigner.views.seed_views import SeedWordsWarningView
         return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
     
-class ToolsCustomEntropyMnemonicLengthView(View):
-    None

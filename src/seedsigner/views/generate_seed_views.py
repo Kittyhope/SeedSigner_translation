@@ -1,7 +1,7 @@
 from seedsigner.views.view import View, Destination, BackStackView
 from seedsigner.gui.components import FontAwesomeIconConstants, SeedSignerIconConstants
 from seedsigner.gui.screens.screen import ButtonListScreen, RET_CODE__BACK_BUTTON
-from seedsigner.views.tools_views import ToolsImageEntropyLivePreviewView, ToolsDiceEntropyMnemonicLengthView, ToolsRandomEntropyMnemonicLengthView, ToolsCustomEntropyMnemonicLengthView
+from seedsigner.views.tools_views import ToolsImageEntropyLivePreviewView, ToolsDiceEntropyMnemonicLengthView, ToolsRandomEntropyMnemonicLengthView
 from seedsigner.views.language_views import translator
 
 class GenerateSeedMenuView(View):
@@ -9,9 +9,8 @@ class GenerateSeedMenuView(View):
         IMAGE = (translator("Image"), FontAwesomeIconConstants.CAMERA)
         DICE = (translator("Dice roll"), FontAwesomeIconConstants.DICE)
         RANDOM = (translator("Random function"), FontAwesomeIconConstants.RANDOM)
-        CUSTOM = (translator("Custom mode"), FontAwesomeIconConstants.CUSTOM)
         
-        button_data = [IMAGE, DICE, RANDOM, CUSTOM]
+        button_data = [IMAGE, DICE, RANDOM]
         
         selected_menu_num = self.run_screen(
             ButtonListScreen,
@@ -28,5 +27,3 @@ class GenerateSeedMenuView(View):
             return Destination(ToolsDiceEntropyMnemonicLengthView)
         elif button_data[selected_menu_num] == RANDOM:
             return Destination(ToolsRandomEntropyMnemonicLengthView)
-        elif button_data[selected_menu_num] == CUSTOM:
-            return Destination(ToolsCustomEntropyMnemonicLengthView)
