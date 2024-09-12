@@ -9,8 +9,6 @@ import nacl.utils
 from embit.descriptor import Descriptor
 from PIL import Image
 from PIL.ImageOps import autocontrast
-from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
-from cryptography.hazmat.backends import default_backend
 
 from seedsigner.controller import Controller
 from seedsigner.gui.components import FontAwesomeIconConstants, GUIConstants, SeedSignerIconConstants
@@ -739,18 +737,6 @@ def sha3_256_hash(data):
 def xor_bytes(a, b):
     return bytes(x ^ y for x, y in zip(a, b))
 
-def mix_entropy(*entropy_sources):
-    key = os.urandom(32)
-    nonce = os.urandom(16)
-    cipher = Cipher(algorithms.AES(key), modes.CTR(nonce), backend=default_backend())
-    encryptor = cipher.encryptor()
-    
-    mixed = b''
-    for source in entropy_sources:
-        mixed += encryptor.update(source)
-    
-    return mixed
-
 def extract_bits(hash_value, num_bits):
     if num_bits > 256:
         raise ValueError("요청된 비트 수가 해시의 길이를 초과합니다.")
@@ -771,9 +757,7 @@ def generate_random_entropy(num_bits):
 
     xor_result = xor_bytes(xor_bytes(openssl_hash, dev_random_hash), libsodium_hash)
 
-    mixed_entropy = mix_entropy(openssl_bytes, dev_random_bytes, libsodium_bytes)
-
-    final_hash = sha3_256_hash(xor_result + mixed_entropy)
+    final_hash = sha3_256_hash(xor_result)
 
     return final_hash[:num_bits // 8 + (1 if num_bits % 8 else 0)]
 
