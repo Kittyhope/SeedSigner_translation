@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "setuptools.build_meta"
-requires = ["setuptools", "wheel", "tomli; python_version < '3.11'"]
+requires = ["setuptools", "wheel"]
 
 [project]
 authors = [{name = "SeedSigner", email = "author@example.com"}]
