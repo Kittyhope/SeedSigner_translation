@@ -15,7 +15,7 @@ from seedsigner.gui.components import FontAwesomeIconConstants, GUIConstants, Se
 from seedsigner.gui.screens import (RET_CODE__BACK_BUTTON, ButtonListScreen, WarningScreen)
 from seedsigner.gui.screens.tools_screens import (ToolsCalcFinalWordDoneScreen, ToolsCalcFinalWordFinalizePromptScreen,
     ToolsCalcFinalWordScreen, ToolsCoinFlipEntryScreen, ToolsDiceEntropyEntryScreen, ToolsImageEntropyFinalImageScreen,
-    ToolsImageEntropyLivePreviewScreen, ToolsAddressExplorerAddressTypeScreen)
+    ToolsImageEntropyLivePreviewScreen, ToolsAddressExplorerAddressTypeScreen, EntropyDisplayScreen)
 from seedsigner.helpers import embit_utils, mnemonic_generation
 from seedsigner.models.encode_qr import GenericStaticQrEncoder
 from seedsigner.models.seed import Seed
@@ -761,6 +761,22 @@ def generate_random_entropy(num_bits):
 
     return final_hash[:num_bits // 8 + (1 if num_bits % 8 else 0)]
 
+class EntropyDisplayView(View):
+    def run(self):
+        with open('/proc/sys/kernel/random/entropy_avail', 'r') as f:
+            entropy_value = int(f.read().strip())
+        with open('/proc/sys/kernel/random/poolsize', 'r') as f:
+            max_entropy = int(f.read().strip())
+        logger.info(f"Initial entropy value: {entropy_value}")
+        logger.info(f"Max entropy pool size: {max_entropy}")
+        selected_menu_num = self.run_screen(
+            EntropyDisplayScreen,
+            entropy_value=entropy_value
+        )
+
+        if selected_menu_num == RET_CODE__BACK_BUTTON:
+            return Destination(BackStackView)
+
 class ToolsRandomEntropyMnemonicLengthView(View):
     def run(self):
         TWELVE_WORDS = translator("12 words")
@@ -780,13 +796,6 @@ class ToolsRandomEntropyMnemonicLengthView(View):
             num_bits = 128
         else:
             num_bits = 256
-
-        entropy = generate_random_entropy(num_bits)
-        mnemonic = mnemonic_generation.generate_mnemonic_from_bytes(entropy)
-
-        seed = Seed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))
-        self.controller.storage.set_pending_seed(seed)
         
-        from seedsigner.views.seed_views import SeedWordsWarningView
-        return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
+        return Destination(EntropyDisplayView)
     

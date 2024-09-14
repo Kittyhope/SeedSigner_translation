@@ -94,7 +94,47 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
                 preview_images.pop(0)
             preview_images.append(frame)
 
+@dataclass
+class EntropyDisplayScreen(BaseScreen):
+    entropy_value: int = None
 
+    def __post_init__(self):
+        super().__post_init__()
+        self.title = translator("Available Entropy")
+        
+        if self.entropy_value is None:
+            with open('/proc/sys/kernel/random/entropy_avail', 'r') as f:
+                self.entropy_value = int(f.read().strip())
+
+    def _render(self):
+        # Clear the screen with the background color
+        self.image_draw.rectangle(
+            (0, 0, self.canvas_width, self.canvas_height),
+            fill=GUIConstants.BACKGROUND_COLOR
+        )
+
+        # Draw the entropy value
+        self.renderer.draw.text(
+            (self.canvas_width // 2, self.canvas_height // 2),
+            str(self.entropy_value),
+            fill=GUIConstants.BODY_FONT_COLOR,
+            font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE * 2),
+            anchor="mm"
+        )
+        
+        # Draw the instruction text
+        self.renderer.draw.text(
+            (self.canvas_width // 2, self.canvas_height - GUIConstants.EDGE_PADDING),
+            translator("Press any button to go back"),
+            fill=GUIConstants.BODY_FONT_COLOR,
+            font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE),
+            anchor="ms"
+        )
+
+    def _run(self):
+        self._render()
+        self.renderer.show_image()
+        return self.hw_inputs.wait_for(HardwareButtonsConstants.ALL_KEYS)
 
 @dataclass
 class ToolsImageEntropyFinalImageScreen(BaseScreen):
