@@ -20,7 +20,8 @@ class Settings(Singleton):
     HOSTNAME = platform.uname()[1]
     SEEDSIGNER_OS = "seedsigner-os"
     SETTINGS_FILENAME = "/mnt/microsd/settings.json" if HOSTNAME == SEEDSIGNER_OS else "settings.json"
-        
+    ENTROPY_FILENAME = "/mnt/microsd/entropy.bin" if HOSTNAME == SEEDSIGNER_OS else "entropy.bin"
+
     @classmethod
     def get_instance(cls):
         # This is the only way to access the one and only instance

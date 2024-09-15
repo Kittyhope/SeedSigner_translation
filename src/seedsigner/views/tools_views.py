@@ -19,10 +19,11 @@ from seedsigner.gui.screens.tools_screens import (ToolsCalcFinalWordDoneScreen, 
 from seedsigner.helpers import embit_utils, mnemonic_generation
 from seedsigner.models.encode_qr import GenericStaticQrEncoder
 from seedsigner.models.seed import Seed
+from seedsigner.models.settings import Settings
 from seedsigner.models.settings_definition import SettingsConstants
 from seedsigner.views.seed_views import SeedDiscardView, SeedFinalizeView, SeedMnemonicEntryView, SeedOptionsView, SeedWordsWarningView, SeedExportXpubScriptTypeView
 from seedsigner.views.language_views import translator
-from .view import View, Destination, BackStackView
+from .view import View, Destination, BackStackView, MainMenuView
 
 logger = logging.getLogger(__name__)
 
@@ -761,10 +762,21 @@ def generate_random_entropy(num_bits):
 
     return final_hash[:num_bits // 8 + (1 if num_bits % 8 else 0)]
 
+def save_entropy(entropy):
+    entropy_file = Settings.ENTROPY_FILENAME
+    mode = 'ab' if os.path.exists(entropy_file) else 'wb'
+    with open(entropy_file, mode) as f:
+        f.write(entropy)
+        f.flush()
+        os.fsync(f.fileno())
+
 class ToolsRandomEntropyMnemonicLengthView(View):
     def run(self):
         TWELVE_WORDS = translator("12 words")
         TWENTY_FOUR_WORDS = translator("24 words")
+        GENERATE = translator("Generate Entropy")
+        DONE = translator("Done")
+        
         button_data = [TWELVE_WORDS, TWENTY_FOUR_WORDS]
 
         selected_menu_num = self.run_screen(
@@ -781,12 +793,17 @@ class ToolsRandomEntropyMnemonicLengthView(View):
         else:
             num_bits = 256
 
-        entropy = generate_random_entropy(num_bits)
-        mnemonic = mnemonic_generation.generate_mnemonic_from_bytes(entropy)
+        button_data = [GENERATE, DONE]
+        selected_menu_num = self.run_screen(
+            ButtonListScreen,
+            title=translator("Generate Entropy"),
+            button_data=button_data,
+        )
+        if button_data[selected_menu_num] == GENERATE:
+            while True:
+                entropy = generate_random_entropy(num_bits)
+                save_entropy(entropy)
 
-        seed = Seed(mnemonic, wordlist_language_code=self.settings.get_value(SettingsConstants.SETTING__WORDLIST_LANGUAGE))
-        self.controller.storage.set_pending_seed(seed)
-        
-        from seedsigner.views.seed_views import SeedWordsWarningView
-        return Destination(SeedWordsWarningView, view_args={"seed_num": None}, clear_history=True)
+                time.sleep(0.00001)
+
     
