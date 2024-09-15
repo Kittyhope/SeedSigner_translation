@@ -19,10 +19,11 @@ from seedsigner.gui.screens.tools_screens import (ToolsCalcFinalWordDoneScreen, 
 from seedsigner.helpers import embit_utils, mnemonic_generation
 from seedsigner.models.encode_qr import GenericStaticQrEncoder
 from seedsigner.models.seed import Seed
+from seedsigner.models.settings import Settings
 from seedsigner.models.settings_definition import SettingsConstants
 from seedsigner.views.seed_views import SeedDiscardView, SeedFinalizeView, SeedMnemonicEntryView, SeedOptionsView, SeedWordsWarningView, SeedExportXpubScriptTypeView
 from seedsigner.views.language_views import translator
-from .view import View, Destination, BackStackView
+from .view import View, Destination, BackStackView, MainMenuView
 
 logger = logging.getLogger(__name__)
 
@@ -761,6 +762,14 @@ def generate_random_entropy(num_bits):
 
     return final_hash[:num_bits // 8 + (1 if num_bits % 8 else 0)]
 
+def save_entropy(entropy):
+    entropy_file = Settings.ENTROPY_FILENAME
+    mode = 'ab' if os.path.exists(entropy_file) else 'wb'
+    with open(entropy_file, mode) as f:
+        f.write(entropy)
+        f.flush()
+        os.fsync(f.fileno())
+
 class EntropyDisplayView(View):
     def run(self):
         rngd_running = self.check_rngd_running()
@@ -798,6 +807,9 @@ class ToolsRandomEntropyMnemonicLengthView(View):
     def run(self):
         TWELVE_WORDS = translator("12 words")
         TWENTY_FOUR_WORDS = translator("24 words")
+        GENERATE = translator("Generate Entropy")
+        RNGD = 'Yes' if self.check_rngd_running2() else 'No'
+
         button_data = [TWELVE_WORDS, TWENTY_FOUR_WORDS]
 
         selected_menu_num = self.run_screen(
@@ -814,5 +826,22 @@ class ToolsRandomEntropyMnemonicLengthView(View):
         else:
             num_bits = 256
         
-        return Destination(EntropyDisplayView)
-    
+        button_data = [GENERATE, RNGD]
+        selected_menu_num = self.run_screen(
+            ButtonListScreen,
+            title=translator("Generate Entropy"),
+            button_data=button_data,
+        )
+        if button_data[selected_menu_num] == GENERATE:
+            while True:
+                entropy = sha3_256_hash(get_dev_random(48))
+                save_entropy(entropy)
+
+                time.sleep(0.00001)
+
+    def check_rngd_running2(self):
+        try:
+            subprocess.check_output(["pgrep", "rngd"])
+            return True
+        except subprocess.CalledProcessError:
+            return False
