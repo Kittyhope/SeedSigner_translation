@@ -763,20 +763,37 @@ def generate_random_entropy(num_bits):
 
 class EntropyDisplayView(View):
     def run(self):
-        with open('/proc/sys/kernel/random/entropy_avail', 'r') as f:
-            entropy_value = int(f.read().strip())
-        with open('/proc/sys/kernel/random/poolsize', 'r') as f:
-            max_entropy = int(f.read().strip())
-        logger.info(f"Initial entropy value: {entropy_value}")
-        logger.info(f"Max entropy pool size: {max_entropy}")
+        rngd_running = self.check_rngd_running()
+        logger.info(f"rngd running: {rngd_running}")
+
+        entropy_bits = self.get_entropy_bits()
         selected_menu_num = self.run_screen(
             EntropyDisplayScreen,
-            entropy_value=entropy_value
+            rngd_running=rngd_running,
+            entropy_bits=entropy_bits
         )
 
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
+    def check_rngd_running(self):
+        try:
+            subprocess.check_output(["pgrep", "rngd"])
+            return True
+        except subprocess.CalledProcessError:
+            return False
 
+    def get_entropy_bits(self):
+        try:
+            # 읽을 바이트 수 (예: 32바이트 = 256비트)
+            num_bytes = 32
+            with open('/dev/random', 'rb') as f:
+                random_bytes = f.read(num_bytes)
+            
+            # 바이트를 비트 문자열로 변환
+            bits = ''.join(format(byte, '08b') for byte in random_bytes)
+            return bits
+        except:
+            return "Unable to read entropy bits"
 class ToolsRandomEntropyMnemonicLengthView(View):
     def run(self):
         TWELVE_WORDS = translator("12 words")

@@ -96,15 +96,11 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
 
 @dataclass
 class EntropyDisplayScreen(BaseScreen):
-    entropy_value: int = None
-
-    def __post_init__(self):
-        super().__post_init__()
+    def __init__(self, rngd_running, entropy_bits):
+        super().__init__()
         self.title = translator("Available Entropy")
-        
-        if self.entropy_value is None:
-            with open('/proc/sys/kernel/random/entropy_avail', 'r') as f:
-                self.entropy_value = int(f.read().strip())
+        self.rngd_running=rngd_running
+        self.entropy_bits=entropy_bits
 
     def _render(self):
         # Clear the screen with the background color
@@ -112,13 +108,23 @@ class EntropyDisplayScreen(BaseScreen):
             (0, 0, self.canvas_width, self.canvas_height),
             fill=GUIConstants.BACKGROUND_COLOR
         )
-
+        a=f"rngd running: {'Yes' if self.rngd_running else 'No'}"
         # Draw the entropy value
         self.renderer.draw.text(
-            (self.canvas_width // 2, self.canvas_height // 2),
-            str(self.entropy_value),
+            (self.canvas_width // 2, self.canvas_height // 8),
+            a,
             fill=GUIConstants.BODY_FONT_COLOR,
-            font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE * 2),
+            font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE),
+            anchor="mm"
+        )
+
+        bits_to_show = self.entropy_bits[:30]
+
+        self.renderer.draw.text(
+            (self.canvas_width // 2, self.canvas_height // 8 + 25),
+            bits_to_show,
+            fill=GUIConstants.BODY_FONT_COLOR,
+            font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE-6),
             anchor="mm"
         )
         
