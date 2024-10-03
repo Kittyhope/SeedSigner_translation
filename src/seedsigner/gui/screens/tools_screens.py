@@ -122,7 +122,7 @@ class EntropyDisplayScreen(BaseScreen):
                 )
                 y_offset += GUIConstants.BODY_FONT_SIZE + GUIConstants.COMPONENT_PADDING
                 
-                for line in log_lines[1:9]:  # 로그의 첫 3줄만 표시
+                for line in log_lines[1:17]:  # 로그의 첫 3줄만 표시
                     self.renderer.draw.text(
                         (GUIConstants.EDGE_PADDING, y_offset),
                         line,

@@ -799,12 +799,14 @@ class EntropyDisplayView(View):
 
     def check_rngd_log(self):
         try:
-            log_output = subprocess.check_output(["sudo", "journalctl", "-u", "rngd", "-n", "20"], universal_newlines=True)
+            with open('/var/log/syslog', 'r') as f:
+                log_lines = f.readlines()[-20:]  # 마지막 20줄만 읽기
+            log_output = ''.join(log_lines)
             if "Initializing BCM2835 Hardware RNG" in log_output and "Initialized successfully" in log_output:
                 return "BCM2835 HRNG initialized successfully"
             else:
                 return log_output.strip()
-        except subprocess.CalledProcessError:
+        except IOError:
             return "Unable to check system logs"
 
     def read_raw_hrng(self, num_bytes=32):
