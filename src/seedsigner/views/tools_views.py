@@ -762,8 +762,36 @@ def generate_random_entropy(num_bits):
 
     return final_hash[:num_bits // 8 + (1 if num_bits % 8 else 0)]
 
-def save_entropy(entropy):
-    entropy_file = Settings.ENTROPY_FILENAME
+def generate_random_entropy2(num_bits):
+    ENTROPY_SIZE = 48
+
+    openssl_bytes = get_openssl_random(ENTROPY_SIZE)
+    dev_random_bytes = get_dev_random(ENTROPY_SIZE)
+    libsodium_bytes = get_libsodium_random(ENTROPY_SIZE)
+
+    openssl_hash = sha3_256_hash(openssl_bytes)
+    save_entropy1(openssl_hash)
+    dev_random_hash = sha3_256_hash(dev_random_bytes)
+    save_entropy2(dev_random_hash)
+    libsodium_hash = sha3_256_hash(libsodium_bytes)
+    save_entropy3(libsodium_hash)
+
+def save_entropy1(entropy):
+    entropy_file = Settings.ENTROPY_FILENAME1
+    mode = 'ab' if os.path.exists(entropy_file) else 'wb'
+    with open(entropy_file, mode) as f:
+        f.write(entropy)
+        f.flush()
+        os.fsync(f.fileno())
+def save_entropy2(entropy):
+    entropy_file = Settings.ENTROPY_FILENAME2
+    mode = 'ab' if os.path.exists(entropy_file) else 'wb'
+    with open(entropy_file, mode) as f:
+        f.write(entropy)
+        f.flush()
+        os.fsync(f.fileno())
+def save_entropy3(entropy):
+    entropy_file = Settings.ENTROPY_FILENAME3
     mode = 'ab' if os.path.exists(entropy_file) else 'wb'
     with open(entropy_file, mode) as f:
         f.write(entropy)
@@ -815,6 +843,8 @@ class ToolsRandomEntropyMnemonicLengthView(View):
     def run(self):
         TWELVE_WORDS = translator("12 words")
         TWENTY_FOUR_WORDS = translator("24 words")
+        GENERATE = translator("Generate Entropy")
+        DONE =translator("Done")
 
         button_data = [TWELVE_WORDS, TWENTY_FOUR_WORDS]
 
@@ -830,4 +860,14 @@ class ToolsRandomEntropyMnemonicLengthView(View):
         if button_data[selected_menu_num] == TWELVE_WORDS:
             num_bits = 128
         else:
-            return Destination(EntropyDisplayView)
+            num_bits = 256
+
+        button_data = [GENERATE, DONE]
+        selected_menu_num = self.run_screen(
+            ButtonListScreen,
+            title=translator("Generate Entropy"),
+            button_data=button_data,
+        )
+        if button_data[selected_menu_num] == GENERATE:
+            while True:
+                generate_random_entropy2(num_bits)

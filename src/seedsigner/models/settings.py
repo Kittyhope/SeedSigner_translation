@@ -20,6 +20,9 @@ class Settings(Singleton):
     HOSTNAME = platform.uname()[1]
     SEEDSIGNER_OS = "seedsigner-os"
     SETTINGS_FILENAME = "/mnt/microsd/settings.json" if HOSTNAME == SEEDSIGNER_OS else "settings.json"
+    ENTROPY_FILENAME1 = "/mnt/microsd/openssl_entropy.bin" if HOSTNAME == SEEDSIGNER_OS else "openssl_entropy.bin"
+    ENTROPY_FILENAME2 = "/mnt/microsd/dev_random_entropy.bin" if HOSTNAME == SEEDSIGNER_OS else "dev_random_entropy.bin"
+    ENTROPY_FILENAME3 = "/mnt/microsd/libsodium_entropy.bin" if HOSTNAME == SEEDSIGNER_OS else "libsodium_entropy.bin"
     ENTROPY_FILENAME = "/mnt/microsd/entropy.bin" if HOSTNAME == SEEDSIGNER_OS else "entropy.bin"
     
     @classmethod
