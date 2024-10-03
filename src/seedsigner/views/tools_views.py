@@ -773,17 +773,23 @@ def save_entropy(entropy):
 class EntropyDisplayView(View):
     def run(self):
         rngd_running = self.check_rngd_running()
-        logger.info(f"rngd running: {rngd_running}")
+        rngd_log = self.check_rngd_log()
+        raw_hrng_sample = self.read_raw_hrng()
 
-        entropy_bits = self.get_entropy_bits()
+        results = [
+            f"rngd running: {'Yes' if rngd_running else 'No'}",
+            f"HRNG log:\n{rngd_log}",
+            f"Raw HRNG sample: {raw_hrng_sample}"
+        ]
+
         selected_menu_num = self.run_screen(
             EntropyDisplayScreen,
-            rngd_running=rngd_running,
-            entropy_bits=entropy_bits
+            results=results
         )
 
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
+
     def check_rngd_running(self):
         try:
             subprocess.check_output(["pgrep", "rngd"])
@@ -791,24 +797,27 @@ class EntropyDisplayView(View):
         except subprocess.CalledProcessError:
             return False
 
-    def get_entropy_bits(self):
+    def check_rngd_log(self):
         try:
-            # 읽을 바이트 수 (예: 32바이트 = 256비트)
-            num_bytes = 32
-            with open('/dev/random', 'rb') as f:
-                random_bytes = f.read(num_bytes)
-            
-            # 바이트를 비트 문자열로 변환
-            bits = ''.join(format(byte, '08b') for byte in random_bytes)
-            return bits
+            log_output = subprocess.check_output(["sudo", "journalctl", "-u", "rngd", "-n", "20"], universal_newlines=True)
+            if "Initializing BCM2835 Hardware RNG" in log_output and "Initialized successfully" in log_output:
+                return "BCM2835 HRNG initialized successfully"
+            else:
+                return log_output.strip()
+        except subprocess.CalledProcessError:
+            return "Unable to check system logs"
+
+    def read_raw_hrng(self, num_bytes=32):
+        try:
+            with open('/dev/hwrng', 'rb') as f:
+                raw_data = f.read(num_bytes)
+            return raw_data.hex()
         except:
-            return "Unable to read entropy bits"
+            return "Unable to read from /dev/hwrng"
 class ToolsRandomEntropyMnemonicLengthView(View):
     def run(self):
         TWELVE_WORDS = translator("12 words")
         TWENTY_FOUR_WORDS = translator("24 words")
-        GENERATE = translator("Generate Entropy")
-        RNGD = 'Yes' if self.check_rngd_running2() else 'No'
 
         button_data = [TWELVE_WORDS, TWENTY_FOUR_WORDS]
 
@@ -824,24 +833,4 @@ class ToolsRandomEntropyMnemonicLengthView(View):
         if button_data[selected_menu_num] == TWELVE_WORDS:
             num_bits = 128
         else:
-            num_bits = 256
-        
-        button_data = [GENERATE, RNGD]
-        selected_menu_num = self.run_screen(
-            ButtonListScreen,
-            title=translator("Generate Entropy"),
-            button_data=button_data,
-        )
-        if button_data[selected_menu_num] == GENERATE:
-            while True:
-                entropy = sha3_256_hash(get_dev_random(48))
-                save_entropy(entropy)
-
-                time.sleep(0.00001)
-
-    def check_rngd_running2(self):
-        try:
-            subprocess.check_output(["pgrep", "rngd"])
-            return True
-        except subprocess.CalledProcessError:
-            return False
+            return Destination(EntropyDisplayView)

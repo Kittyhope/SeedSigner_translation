@@ -96,11 +96,11 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
 
 @dataclass
 class EntropyDisplayScreen(BaseScreen):
-    def __init__(self, rngd_running, entropy_bits):
-        super().__init__()
-        self.title = translator("Available Entropy")
-        self.rngd_running=rngd_running
-        self.entropy_bits=entropy_bits
+    results: list = None
+
+    def __post_init__(self):
+        super().__post_init__()
+        self.title = translator("HRNG Status")
 
     def _render(self):
         # Clear the screen with the background color
@@ -108,25 +108,39 @@ class EntropyDisplayScreen(BaseScreen):
             (0, 0, self.canvas_width, self.canvas_height),
             fill=GUIConstants.BACKGROUND_COLOR
         )
-        a=f"rngd running: {'Yes' if self.rngd_running else 'No'}"
-        # Draw the entropy value
-        self.renderer.draw.text(
-            (self.canvas_width // 2, self.canvas_height // 8),
-            a,
-            fill=GUIConstants.BODY_FONT_COLOR,
-            font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE),
-            anchor="mm"
-        )
 
-        bits_to_show = self.entropy_bits[:30]
-
-        self.renderer.draw.text(
-            (self.canvas_width // 2, self.canvas_height // 8 + 25),
-            bits_to_show,
-            fill=GUIConstants.BODY_FONT_COLOR,
-            font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE-6),
-            anchor="mm"
-        )
+        y_offset=6
+        for result in self.results:
+            if result.startswith("HRNG log:"):
+                log_lines = result.split('\n')
+                self.renderer.draw.text(
+                    (self.canvas_width // 2, y_offset),
+                    log_lines[0],  # "HRNG log:" 부분
+                    fill=GUIConstants.BODY_FONT_COLOR,
+                    font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE - 6),
+                    anchor="mt"
+                )
+                y_offset += GUIConstants.BODY_FONT_SIZE + GUIConstants.COMPONENT_PADDING
+                
+                for line in log_lines[1:9]:  # 로그의 첫 3줄만 표시
+                    self.renderer.draw.text(
+                        (GUIConstants.EDGE_PADDING, y_offset),
+                        line,
+                        fill=GUIConstants.BODY_FONT_COLOR,
+                        font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE - 6),
+                        anchor="lt"
+                    )
+                    y_offset += (GUIConstants.BODY_FONT_SIZE - 2) + GUIConstants.COMPONENT_PADDING
+            else:
+                # 다른 결과들은 그대로 표시
+                self.renderer.draw.text(
+                    (self.canvas_width // 2, y_offset),
+                    result,
+                    fill=GUIConstants.BODY_FONT_COLOR,
+                    font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE-6),
+                    anchor="mt"
+                )
+                y_offset += GUIConstants.BODY_FONT_SIZE + GUIConstants.COMPONENT_PADDING
         
         # Draw the instruction text
         self.renderer.draw.text(
