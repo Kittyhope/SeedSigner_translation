@@ -790,12 +790,12 @@ class EntropyDisplayView(View):
         if selected_menu_num == RET_CODE__BACK_BUTTON:
             return Destination(BackStackView)
 
-    def check_rngd_running(self):
+    def check_rngd_log(self):
         try:
-            subprocess.check_output(["pgrep", "rngd"])
-            return True
+            status_output = subprocess.check_output(["systemctl", "status", "rngd"], universal_newlines=True)
+            return status_output.strip()
         except subprocess.CalledProcessError:
-            return False
+            return "Unable to check rngd service status"
 
     def check_rngd_log(self):
         try:
