@@ -778,7 +778,7 @@ class EntropyDisplayView(View):
 
         results = [
             f"rngd running: {'Yes' if rngd_running else 'No'}",
-            f"HRNG log:\n{rngd_log}",
+            f"HRNG log:{rngd_log}",
             f"Raw HRNG sample: {raw_hrng_sample}"
         ]
 
@@ -798,11 +798,30 @@ class EntropyDisplayView(View):
             return False
 
     def check_rngd_log(self):
+        hrng_related_terms = [
+            "hardware_rng",
+            "hwrng",
+            "hw_random",
+            "rng-tools",
+            "bcm2708-rng",
+            "bcm2835-rng",
+            "iproc-rng200",
+            "rng_core",
+            "tpm-rng",
+            "virtio-rng"
+        ]
         try:
-            dmesg_output = subprocess.check_output(["dmesg"], universal_newlines=True)
-            return "hardware_rng" in dmesg_output.lower()
+            dmesg_output = subprocess.check_output(["dmesg"], universal_newlines=True, stderr=subprocess.DEVNULL)
+            dmesg_lower = dmesg_output.lower()
+            
+            found_terms = [term for term in hrng_related_terms if term in dmesg_lower]
+            
+            if found_terms:
+                return True, f"HRNG related terms found: {', '.join(found_terms)}"
+            else:
+                return False, "No HRNG related terms found in dmesg"
         except:
-            return False
+            return False, "Failed to read dmesg output"
 
     def read_raw_hrng(self, num_bytes=32):
         try:

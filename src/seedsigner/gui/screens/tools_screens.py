@@ -111,36 +111,14 @@ class EntropyDisplayScreen(BaseScreen):
 
         y_offset=6
         for result in self.results:
-            if result.startswith("HRNG log:"):
-                log_lines = result.split('\n')
-                self.renderer.draw.text(
-                    (self.canvas_width // 2, y_offset),
-                    log_lines[0],  # "HRNG log:" 부분
-                    fill=GUIConstants.BODY_FONT_COLOR,
-                    font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE - 6),
-                    anchor="mt"
-                )
-                y_offset += GUIConstants.BODY_FONT_SIZE + GUIConstants.COMPONENT_PADDING
-                
-                for line in log_lines[1:]:  # 로그의 첫 3줄만 표시
-                    self.renderer.draw.text(
-                        (GUIConstants.EDGE_PADDING, y_offset),
-                        line,
-                        fill=GUIConstants.BODY_FONT_COLOR,
-                        font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE - 6),
-                        anchor="lt"
-                    )
-                    y_offset += (GUIConstants.BODY_FONT_SIZE - 2) + GUIConstants.COMPONENT_PADDING
-            else:
-                # 다른 결과들은 그대로 표시
-                self.renderer.draw.text(
-                    (self.canvas_width // 2, y_offset),
-                    result,
-                    fill=GUIConstants.BODY_FONT_COLOR,
-                    font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE-6),
-                    anchor="mt"
-                )
-                y_offset += GUIConstants.BODY_FONT_SIZE + GUIConstants.COMPONENT_PADDING
+            self.renderer.draw.text(
+                (self.canvas_width // 2, y_offset),
+                result,
+                fill=GUIConstants.BODY_FONT_COLOR,
+                font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE-6),
+                anchor="mt"
+            )
+            y_offset += GUIConstants.BODY_FONT_SIZE + GUIConstants.COMPONENT_PADDING
         
         # Draw the instruction text
         self.renderer.draw.text(
