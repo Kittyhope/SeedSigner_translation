@@ -762,19 +762,17 @@ def generate_random_entropy(num_bits):
 
     return final_hash[:num_bits // 8 + (1 if num_bits % 8 else 0)]
 
-def generate_random_entropy2(num_bits):
-    ENTROPY_SIZE = 48
-
+def generate_random_entropy1(ENTROPY_SIZE):
     openssl_bytes = get_openssl_random(ENTROPY_SIZE)
-    dev_random_bytes = get_dev_random(ENTROPY_SIZE)
-    libsodium_bytes = get_libsodium_random(ENTROPY_SIZE)
+    save_entropy1(openssl_bytes)
 
-    openssl_hash = sha3_256_hash(openssl_bytes)
-    save_entropy1(openssl_hash)
-    dev_random_hash = sha3_256_hash(dev_random_bytes)
-    save_entropy2(dev_random_hash)
-    libsodium_hash = sha3_256_hash(libsodium_bytes)
-    save_entropy3(libsodium_hash)
+def generate_random_entropy2(ENTROPY_SIZE):
+    dev_random_bytes = get_dev_random(ENTROPY_SIZE)
+    save_entropy2(dev_random_bytes)
+
+def generate_random_entropy3(ENTROPY_SIZE):
+    libsodium_bytes = get_libsodium_random(ENTROPY_SIZE)
+    save_entropy3(libsodium_bytes)
 
 def save_entropy1(entropy):
     entropy_file = Settings.ENTROPY_FILENAME1
@@ -797,7 +795,19 @@ def save_entropy3(entropy):
         f.write(entropy)
         f.flush()
         os.fsync(f.fileno())
-
+def get_dev_random_and_pause(n, pause_duration=20):
+    try:
+        with open("/dev/random", "rb") as f:
+            a = f.read(n)
+        print(f"Read {n} bytes from /dev/random")
+        
+        print(f"Pausing for {pause_duration} seconds...")
+        time.sleep(pause_duration)
+        print("Pause completed")
+        
+        return a
+    except IOError:
+        raise RuntimeError("Failed to read from /dev/random")
 class EntropyDisplayView(View):
     def run(self):
         rngd_running = self.check_rngd_running()
@@ -841,11 +851,18 @@ class EntropyDisplayView(View):
             return "Unable to read from /dev/hwrng"
 class ToolsRandomEntropyMnemonicLengthView(View):
     def run(self):
+        with open('/proc/sys/kernel/random/entropy_avail', 'r') as f:
+            entropy_value = int(f.read().strip())
+        with open('/proc/sys/kernel/random/poolsize', 'r') as f:
+            max_entropy = int(f.read().strip())
         TWELVE_WORDS = translator("12 words")
         TWENTY_FOUR_WORDS = translator("24 words")
-        GENERATE = translator("Generate Entropy")
-        DONE =translator("Done")
-
+        OPENSSL = translator("openssl")
+        DEVRANDOM =translator("dev_random")
+        LIBSODIUM =translator("libsodium")
+        ENTROPYCURRENT=f"{entropy_value}"
+        ENTROPYPOOL=f"{max_entropy}"
+        a = get_dev_random_and_pause(256)
         button_data = [TWELVE_WORDS, TWENTY_FOUR_WORDS]
 
         selected_menu_num = self.run_screen(
@@ -862,12 +879,22 @@ class ToolsRandomEntropyMnemonicLengthView(View):
         else:
             num_bits = 256
 
-        button_data = [GENERATE, DONE]
+        button_data = [OPENSSL, DEVRANDOM, LIBSODIUM, ENTROPYCURRENT, ENTROPYPOOL]
         selected_menu_num = self.run_screen(
             ButtonListScreen,
             title=translator("Generate Entropy"),
             button_data=button_data,
         )
-        if button_data[selected_menu_num] == GENERATE:
+        if button_data[selected_menu_num] == OPENSSL:
             while True:
-                generate_random_entropy2(num_bits)
+                generate_random_entropy1(128)
+        elif button_data[selected_menu_num] == DEVRANDOM:
+            while True:
+                generate_random_entropy2(128)
+        elif button_data[selected_menu_num] == LIBSODIUM:
+            while True:
+                generate_random_entropy3(128)
+        elif button_data[selected_menu_num] == ENTROPYCURRENT:
+            return Destination(BackStackView)
+        elif button_data[selected_menu_num] == ENTROPYPOOL:
+            return Destination(BackStackView)
