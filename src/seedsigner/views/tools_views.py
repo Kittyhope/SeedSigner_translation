@@ -808,47 +808,6 @@ def get_dev_random_and_pause(n, pause_duration=20):
         return a
     except IOError:
         raise RuntimeError("Failed to read from /dev/random")
-class EntropyDisplayView(View):
-    def run(self):
-        rngd_running = self.check_rngd_running()
-        rngd_log = self.check_rngd_log()
-        raw_hrng_sample = self.read_raw_hrng()
-
-        results = [
-            f"rngd running: {'Yes' if rngd_running else 'No'}",
-            f"HRNG log:\n{rngd_log}",
-            f"Raw HRNG sample: {raw_hrng_sample}"
-        ]
-
-        selected_menu_num = self.run_screen(
-            EntropyDisplayScreen,
-            results=results
-        )
-
-        if selected_menu_num == RET_CODE__BACK_BUTTON:
-            return Destination(BackStackView)
-
-    def check_rngd_running(self):
-        try:
-            subprocess.check_output(["pgrep", "rngd"])
-            return True
-        except subprocess.CalledProcessError:
-            return False
-
-    def check_rngd_log(self):
-        try:
-            status_output = subprocess.check_output(["systemctl", "status", "rngd"], universal_newlines=True)
-            return status_output.strip()
-        except subprocess.CalledProcessError:
-            return "Unable to check rngd service status"
-
-    def read_raw_hrng(self, num_bytes=32):
-        try:
-            with open('/dev/hwrng', 'rb') as f:
-                raw_data = f.read(num_bytes)
-            return raw_data.hex()
-        except:
-            return "Unable to read from /dev/hwrng"
 class ToolsRandomEntropyMnemonicLengthView(View):
     def run(self):
         with open('/proc/sys/kernel/random/entropy_avail', 'r') as f:

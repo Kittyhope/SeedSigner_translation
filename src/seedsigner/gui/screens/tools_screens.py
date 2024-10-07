@@ -95,68 +95,6 @@ class ToolsImageEntropyLivePreviewScreen(BaseScreen):
             preview_images.append(frame)
 
 @dataclass
-class EntropyDisplayScreen(BaseScreen):
-    results: list = None
-
-    def __post_init__(self):
-        super().__post_init__()
-        self.title = translator("HRNG Status")
-
-    def _render(self):
-        # Clear the screen with the background color
-        self.image_draw.rectangle(
-            (0, 0, self.canvas_width, self.canvas_height),
-            fill=GUIConstants.BACKGROUND_COLOR
-        )
-
-        y_offset=6
-        for result in self.results:
-            if result.startswith("HRNG log:"):
-                log_lines = result.split('\n')
-                self.renderer.draw.text(
-                    (self.canvas_width // 2, y_offset),
-                    log_lines[0],  # "HRNG log:" 부분
-                    fill=GUIConstants.BODY_FONT_COLOR,
-                    font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE - 6),
-                    anchor="mt"
-                )
-                y_offset += GUIConstants.BODY_FONT_SIZE + GUIConstants.COMPONENT_PADDING
-                
-                for line in log_lines[1:]:  # 로그의 첫 3줄만 표시
-                    self.renderer.draw.text(
-                        (GUIConstants.EDGE_PADDING, y_offset),
-                        line,
-                        fill=GUIConstants.BODY_FONT_COLOR,
-                        font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE - 6),
-                        anchor="lt"
-                    )
-                    y_offset += (GUIConstants.BODY_FONT_SIZE - 2) + GUIConstants.COMPONENT_PADDING
-            else:
-                # 다른 결과들은 그대로 표시
-                self.renderer.draw.text(
-                    (self.canvas_width // 2, y_offset),
-                    result,
-                    fill=GUIConstants.BODY_FONT_COLOR,
-                    font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE-6),
-                    anchor="mt"
-                )
-                y_offset += GUIConstants.BODY_FONT_SIZE + GUIConstants.COMPONENT_PADDING
-        
-        # Draw the instruction text
-        self.renderer.draw.text(
-            (self.canvas_width // 2, self.canvas_height - GUIConstants.EDGE_PADDING),
-            translator("Press any button to go back"),
-            fill=GUIConstants.BODY_FONT_COLOR,
-            font=Fonts.get_font(GUIConstants.BODY_FONT_NAME, GUIConstants.BODY_FONT_SIZE),
-            anchor="ms"
-        )
-
-    def _run(self):
-        self._render()
-        self.renderer.show_image()
-        return self.hw_inputs.wait_for(HardwareButtonsConstants.ALL_KEYS)
-
-@dataclass
 class ToolsImageEntropyFinalImageScreen(BaseScreen):
     final_image: Image = None
 
