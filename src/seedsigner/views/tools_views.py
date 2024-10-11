@@ -5,6 +5,8 @@ import os
 import time
 import subprocess
 import nacl.utils
+import hmac
+import random
 
 from embit.descriptor import Descriptor
 from PIL import Image
@@ -716,51 +718,96 @@ class ToolsAddressExplorerAddressView(View):
         # Exiting/Cancelling the QR display screen always returns to the list
         return Destination(ToolsAddressExplorerAddressListView, view_args=dict(is_change=self.is_change, start_index=self.start_index, selected_button_index=self.index - self.start_index, initial_scroll=self.parent_initial_scroll), skip_current_view=True)
 
-def get_openssl_random(n):
+ENTROPY_MAX_LEN = 64  # 512 bits for HKDF output
+FINAL_ENTROPY_LEN = 32  # 256 bits for final output
+RANDOM_GEN_LEN = 32  # 256 bits for each random generation
+
+def get_openssl_random(n=RANDOM_GEN_LEN):
     try:
+        random_delay()
         return subprocess.check_output(["openssl", "rand", str(n)], stderr=subprocess.DEVNULL)
     except subprocess.CalledProcessError:
         raise RuntimeError("OpenSSL random generation failed")
 
-def get_dev_random(n):
+def get_dev_random(n=RANDOM_GEN_LEN):
     try:
+        random_delay()
         with open("/dev/random", "rb") as f:
             return f.read(n)
     except IOError:
         raise RuntimeError("Failed to read from /dev/random")
 
-def get_libsodium_random(n):
+def get_libsodium_random(n=RANDOM_GEN_LEN):
+    random_delay()
     return nacl.utils.random(n)
 
-def sha3_256_hash(data):
-    return hashlib.sha3_256(data).digest()
-
-def xor_bytes(a, b):
-    return bytes(x ^ y for x, y in zip(a, b))
-
-def extract_bits(hash_value, num_bits):
-    if num_bits > 256:
-        raise ValueError("요청된 비트 수가 해시의 길이를 초과합니다.")
+def hkdf(salt, input_key_material, info, length, hash_func=hashlib.sha256):
+    prk = hmac.new(salt, input_key_material, hash_func).digest()
     
-    bit_string = ''.join(format(byte, '08b') for byte in hash_value)
-    return bit_string[:num_bits]
+    t = b""
+    okm = b""
+    for i in range(1, -(-length // hash_func().digest_size) + 1):
+        t = hmac.new(prk, t + info + bytes([i]), hash_func).digest()
+        okm += t
+    
+    return okm[:length]
 
-def generate_random_entropy(num_bits):
-    ENTROPY_SIZE = 48
+def pbkdf2_hmac(hash_name, password, salt, iterations, dklen=None):
+    return hashlib.pbkdf2_hmac(hash_name, password, salt, iterations, dklen)
 
-    openssl_bytes = get_openssl_random(ENTROPY_SIZE)
-    dev_random_bytes = get_dev_random(ENTROPY_SIZE)
-    libsodium_bytes = get_libsodium_random(ENTROPY_SIZE)
+def random_delay(min_delay=0.001, max_delay=0.01):
+    delay = random.uniform(min_delay, max_delay)
+    time.sleep(delay)
+    return delay
 
-    openssl_hash = sha3_256_hash(openssl_bytes)
-    dev_random_hash = sha3_256_hash(dev_random_bytes)
-    libsodium_hash = sha3_256_hash(libsodium_bytes)
+def generate_random_entropy():
+    # Initialize buffers
+    input_buffer = b""
+    output_buffer = bytearray(ENTROPY_MAX_LEN)
 
-    xor_result = xor_bytes(xor_bytes(openssl_hash, dev_random_hash), libsodium_hash)
+    # Step 1: Generate initial entropy using SHA3-256
+    initial_entropy = hashlib.sha3_256()
+    random_results = {}
+    for source in [get_openssl_random, get_libsodium_random, get_dev_random]:
+        # Generate first 32 bytes (256 bits) of random data
+        initial_data = source(RANDOM_GEN_LEN)
+        
+        # Initialize SHA3-256 hash with the first random data
+        initial_entropy = hashlib.sha3_256(initial_data)
+        
+        # Generate second 32 bytes (256 bits) of random data
+        update_data = source(RANDOM_GEN_LEN)
+        
+        # Update SHA3-256 hash with the second random data
+        initial_entropy.update(update_data)
+        
+        # Store the final digest as the result for this source
+        random_results[source.__name__] = initial_entropy.digest()
 
-    final_hash = sha3_256_hash(xor_result)
+    # Step 2: Sequential HKDF process with multiple sources
+    for i, source_name in enumerate(['get_openssl_random', 'get_libsodium_random', 'get_dev_random']):
+        random_buffer = random_results[source_name]
 
-    return final_hash[:num_bits // 8 + (1 if num_bits % 8 else 0)]
+        info = f"Seedsigner entropy derivation hkdf step {i+1}".encode()
+        hkdf_salt = os.urandom(RANDOM_GEN_LEN)  # 32 bytes of random salt for each HKDF step
+
+        if i == 0:
+            # For the first iteration, use only the random_buffer
+            output_buffer = hkdf(hkdf_salt, input_buffer + random_buffer, info, ENTROPY_MAX_LEN)
+        else:
+            # For subsequent iterations, use output_buffer + random_buffer
+            output_buffer = hkdf(hkdf_salt, output_buffer + random_buffer, info, ENTROPY_MAX_LEN)
+
+    # Step 3: Apply PBKDF2
+    pbkdf2_salt = os.urandom(RANDOM_GEN_LEN)  # 32 bytes of random salt for PBKDF2
+    final_entropy = pbkdf2_hmac('sha256', output_buffer, pbkdf2_salt, 1000, FINAL_ENTROPY_LEN)
+
+    # Clear sensitive data
+    for buffer in [bytearray(input_buffer), bytearray(output_buffer), bytearray(random_buffer)]:
+        for i in range(len(buffer)):
+            buffer[i] = 0
+
+    return final_entropy
 
 def save_entropy(entropy):
     entropy_file = Settings.ENTROPY_FILENAME
@@ -834,7 +881,7 @@ class ToolsRandomEntropyMnemonicLengthView(View):
         )
         if button_data[selected_menu_num] == GENERATE:
             while True:
-                entropy = sha3_256_hash(get_dev_random(48))
+                entropy = generate_random_entropy()
                 save_entropy(entropy)
 
                 time.sleep(0.00001)
