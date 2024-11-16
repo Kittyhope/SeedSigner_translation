@@ -17,6 +17,7 @@ from seedsigner.gui.screens.tools_screens import (ToolsCalcFinalWordDoneScreen, 
     ToolsCalcFinalWordScreen, ToolsCoinFlipEntryScreen, ToolsDiceEntropyEntryScreen, ToolsImageEntropyFinalImageScreen,
     ToolsImageEntropyLivePreviewScreen, ToolsAddressExplorerAddressTypeScreen, EntropyDisplayScreen)
 from seedsigner.helpers import embit_utils, mnemonic_generation
+from seedsigner.helpers.INA219 import INA219
 from seedsigner.models.encode_qr import GenericStaticQrEncoder
 from seedsigner.models.seed import Seed
 from seedsigner.models.settings import Settings
@@ -804,13 +805,46 @@ class EntropyDisplayView(View):
         except:
             return "Unable to read entropy bits"
 class ToolsRandomEntropyMnemonicLengthView(View):
+    def __init__(self):
+        super().__init__()
+        self.ina219 = None
+        try:
+            self.ina219 = INA219(addr=0x43)
+        except Exception as e:
+            logger.error(f"Failed to initialize INA219: {e}")
+    
+    def get_battery_percentage(self):
+        """배터리 퍼센트를 계산하여 반환"""
+        try:
+            if not self.ina219:
+                return None
+                
+            bus_voltage = self.ina219.getBusVoltage_V()
+            
+            # 배터리 전압을 퍼센트로 변환 (3V를 0%, 4.2V를 100%로 계산)
+            battery_percentage = ((bus_voltage - 3.0) / (4.2 - 3.0)) * 100
+            
+            # 퍼센트 범위를 0-100으로 제한
+            battery_percentage = max(0, min(100, battery_percentage))
+            
+            logger.info(f"Battery voltage: {bus_voltage}V, Percentage: {battery_percentage:.1f}%")
+            return battery_percentage
+            
+        except Exception as e:
+            logger.error(f"Failed to read battery percentage: {e}")
+            return None
+
     def run(self):
+        # 배터리 상태 확인
+        battery_percentage = self.get_battery_percentage()
+        battery_status = f"Battery: {battery_percentage:.1f}%" if battery_percentage is not None else "Battery: N/A"
+
         TWELVE_WORDS = translator("12 words")
         TWENTY_FOUR_WORDS = translator("24 words")
         GENERATE = translator("Generate Entropy")
-        RNGD = 'Yes' if self.check_rngd_running2() else 'No'
+        BATTERY_STATUS = battery_status
 
-        button_data = [TWELVE_WORDS, TWENTY_FOUR_WORDS]
+        button_data = [TWELVE_WORDS, TWENTY_FOUR_WORDS, BATTERY_STATUS]
 
         selected_menu_num = self.run_screen(
             ButtonListScreen,
@@ -826,17 +860,17 @@ class ToolsRandomEntropyMnemonicLengthView(View):
         else:
             num_bits = 256
         
-        button_data = [GENERATE, RNGD]
+        button_data = [GENERATE, BATTERY_STATUS]
         selected_menu_num = self.run_screen(
             ButtonListScreen,
             title=translator("Generate Entropy"),
             button_data=button_data,
         )
+
         if button_data[selected_menu_num] == GENERATE:
             while True:
                 entropy = sha3_256_hash(get_dev_random(48))
                 save_entropy(entropy)
-
                 time.sleep(0.00001)
 
     def check_rngd_running2(self):
