@@ -812,6 +812,16 @@ class ToolsRandomEntropyMnemonicLengthView(View):
             self.ina219 = INA219(addr=0x43)
         except Exception as e:
             logger.error(f"Failed to initialize INA219: {e}")
+
+    def get_i2c_devices(self):
+        """I2C 장치 목록을 문자열로 반환"""
+        try:
+            result = subprocess.check_output(["ls", "/dev/i2c-*"], 
+                                        stderr=subprocess.STDOUT,
+                                        universal_newlines=True)
+            return f"I2C devices: {result.strip()}"
+        except subprocess.CalledProcessError as e:
+            return f"No I2C devices found: {e.output.strip()}"
     
     def get_battery_percentage(self):
         """배터리 퍼센트를 계산하여 반환"""
@@ -833,18 +843,46 @@ class ToolsRandomEntropyMnemonicLengthView(View):
         except Exception as e:
             logger.error(f"Failed to read battery percentage: {e}")
             return None
+        
+    def get_i2c_addresses(self):
+        """i2cdetect 명령어로 I2C 주소 맵을 가져옴"""
+        try:
+            result = subprocess.check_output(["i2cdetect", "-y", "1"],
+                                        stderr=subprocess.STDOUT,
+                                        universal_newlines=True)
+            logger.info(f"I2C address map:\n{result}")
+            # 결과가 너무 길면 첫 줄만 표시하거나 발견된 주소만 표시
+            detected = []
+            for line in result.split('\n')[1:]:  # 헤더 라인 건너뛰기
+                # 각 라인에서 '--' 가 아닌 숫자 찾기
+                addresses = [int(x, 16) for x in line[3:].split() if x != '--' and x != '']
+                detected.extend([hex(x) for x in addresses])
+            
+            if detected:
+                return f"I2C addresses: {', '.join(detected)}"
+            else:
+                return "No I2C devices detected"
+                
+        except subprocess.CalledProcessError as e:
+            logger.error(f"i2cdetect failed: {e.output.strip()}")
+            return f"i2cdetect error: {e.output.strip()}"
 
     def run(self):
         # 배터리 상태 확인
         battery_percentage = self.get_battery_percentage()
         battery_status = f"Battery: {battery_percentage:.1f}%" if battery_percentage is not None else "Battery: N/A"
+        i2c_devices = self.get_i2c_devices()
+        i2c_map = self.get_i2c_addresses()
 
         TWELVE_WORDS = translator("12 words")
         TWENTY_FOUR_WORDS = translator("24 words")
         GENERATE = translator("Generate Entropy")
         BATTERY_STATUS = battery_status
+        I2C_STATUS = i2c_devices
+        I2C_MAP = i2c_map
 
-        button_data = [TWELVE_WORDS, TWENTY_FOUR_WORDS, BATTERY_STATUS]
+
+        button_data = [TWELVE_WORDS, BATTERY_STATUS, I2C_STATUS, I2C_MAP]
 
         selected_menu_num = self.run_screen(
             ButtonListScreen,
