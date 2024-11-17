@@ -807,11 +807,8 @@ class EntropyDisplayView(View):
 class ToolsRandomEntropyMnemonicLengthView(View):
     def __init__(self):
         super().__init__()
-        self.ina219 = None
-        try:
-            self.ina219 = INA219(addr=0x43)
-        except Exception as e:
-            logger.error(f"Failed to initialize INA219: {e}")
+        self.ina219 = INA219(addr=0x40)
+        self.ina2193 = INA219(addr=0x43)
 
     def get_i2c_devices(self):
         """I2C 장치 목록을 문자열로 반환"""
@@ -843,7 +840,15 @@ class ToolsRandomEntropyMnemonicLengthView(View):
         except Exception as e:
             logger.error(f"Failed to read battery percentage: {e}")
             return None
-        
+    def get_battery_percentage2(self):
+        """배터리 퍼센트를 계산하여 반환"""
+                
+        return self.ina219.get_battery_percentage()  # 수정된 메서드 사용
+    def get_battery_percentage3(self):
+        """배터리 퍼센트를 계산하여 반환"""
+                
+        return self.ina2193.get_battery_percentage()  # 수정된 메서드 사용
+                
     def get_i2c_addresses(self):
         """i2cdetect 명령어로 I2C 주소 맵을 가져옴"""
         try:
@@ -870,19 +875,18 @@ class ToolsRandomEntropyMnemonicLengthView(View):
     def run(self):
         # 배터리 상태 확인
         battery_percentage = self.get_battery_percentage()
-        battery_status = f"Battery: {battery_percentage:.1f}%" if battery_percentage is not None else "Battery: N/A"
-        i2c_devices = self.get_i2c_devices()
-        i2c_map = self.get_i2c_addresses()
+        battery_percentage2 = self.get_battery_percentage2()
+        battery_percentage3 = self.get_battery_percentage3()
 
         TWELVE_WORDS = translator("12 words")
         TWENTY_FOUR_WORDS = translator("24 words")
         GENERATE = translator("Generate Entropy")
-        BATTERY_STATUS = battery_status
-        I2C_STATUS = i2c_devices
-        I2C_MAP = i2c_map
+        BATTERY_STATUS = battery_percentage
+        BATTERY_STATUS2 = battery_percentage2
+        BATTERY_STATUS3 = battery_percentage3
 
 
-        button_data = [TWELVE_WORDS, BATTERY_STATUS, I2C_STATUS, I2C_MAP]
+        button_data = [BATTERY_STATUS, BATTERY_STATUS2, BATTERY_STATUS3]
 
         selected_menu_num = self.run_screen(
             ButtonListScreen,

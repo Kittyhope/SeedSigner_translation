@@ -60,7 +60,7 @@ class INA219:
     def __init__(self, i2c_bus=1, addr=0x40):
         self.bus = smbus.SMBus(i2c_bus);
         self.addr = addr
-
+        self.p = 0
         # Set chip to known config values to start
         self._cal_value = 0
         self._current_lsb = 0
@@ -187,4 +187,11 @@ class INA219:
         if value > 32767:
             value -= 65535
         return value * self._power_lsb
-        
+
+    def get_battery_percentage(self):
+        """배터리 퍼센트를 계산하고 저장"""
+        bus_voltage = self.getBusVoltage_V()
+        self.p = (bus_voltage - 3)/1.2*100
+        if(self.p > 100): self.p = 100
+        if(self.p < 0): self.p = 0
+        return self.p
